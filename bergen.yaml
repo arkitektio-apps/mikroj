@@ -1,0 +1,40 @@
+arkitekt:
+  host: p-tnagerl-lab1
+  port: 8090
+  secure: false
+  postman:
+    host: p-tnagerl-lab1
+    port: 8090
+    secure: false
+
+logging:
+  stream: false
+  file: true
+  level: INFO
+    
+herre:
+  host: localhost
+  port: 8000
+  secure: false
+  scopes:
+    - introspection
+    - can_create_identifier
+    - can_provide
+    - can_assign
+    - can_create
+  clientID: huKQboFgvLaqfVb23QAJ7Kchp9Rzl87vCVRgWHjZ
+  client_id: 9B3T1AV7DgvetbF7QR8AIq2Oz2GuYEuGaU8tgvRE
+  client_secret: 28a7eS6LqfO5KxouHEpy97gvv4LDA34E8ijxbtpZ2PxHsr6aHBmY72hOUXWIHsZq6jE4RNVgGMubzarsAnuN47H0CqDcDjidxGcWcRD7ubOWq78a83JPPwoWDMOUftdm
+  authorization_grant_type: AUTHORIZATION_CODE
+  redirect_uri: http://localhost:3000
+  jupyter_sync: True
+
+
+mikro:
+  host: p-tnagerl-lab1
+  port: 8080
+  secure: false
+fluss:
+  host: p-tnagerl-lab1
+  port: 8070
+  secure: false
