@@ -32,6 +32,7 @@ exe = EXE(pyz,
           console=False,
           disable_windowed_traceback=False,
           target_arch=None,
+          icon='mikroj-logo.ico',
           codesign_identity=None,
           entitlements_file=None )
 coll = COLLECT(exe,
