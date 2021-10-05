@@ -1,0 +1,19 @@
+There is no event-loop in this thread. Lets create a new One
+Using Insecure Oauth2 Protocol.. Please only for local and debug deployments
+There is no event-loop in this thread. Lets create a new One
+Using Insecure Oauth2 Protocol.. Please only for local and debug deployments
+There is no event-loop in this thread. Lets create a new One
+Using Insecure Oauth2 Protocol.. Please only for local and debug deployments
+Deprecated method call: scyjava.config.add_endpoints(). Please modify scyjava.config.endpoints directly instead.
+Deprecated method call: scyjava.config.add_endpoints(). Please modify scyjava.config.endpoints directly instead.
+Deprecated method call: scyjava.config.get_endpoints(). Please access scyjava.config.endpoints directly instead.
+There is no event-loop in this thread. Lets create a new One
+Using Insecure Oauth2 Protocol.. Please only for local and debug deployments
+Deprecated method call: scyjava.config.add_endpoints(). Please modify scyjava.config.endpoints directly instead.
+Deprecated method call: scyjava.config.add_endpoints(). Please modify scyjava.config.endpoints directly instead.
+Deprecated method call: scyjava.config.get_endpoints(). Please access scyjava.config.endpoints directly instead.
+There is no event-loop in this thread. Lets create a new One
+Using Insecure Oauth2 Protocol.. Please only for local and debug deployments
+Deprecated method call: scyjava.config.add_endpoints(). Please modify scyjava.config.endpoints directly instead.
+Deprecated method call: scyjava.config.add_endpoints(). Please modify scyjava.config.endpoints directly instead.
+Deprecated method call: scyjava.config.get_endpoints(). Please access scyjava.config.endpoints directly instead.

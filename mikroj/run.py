@@ -1,4 +1,5 @@
 from arkitekt.schema.widgets import SearchWidget
+from herre.auth import HerreClient
 import numpy
 from mikroj.helper import ImageJHelper
 from mikro.schema import Representation, RepresentationVariety
@@ -12,6 +13,8 @@ from mikroj.implementations.temp_color_code import color_code
 
 
 def main(**agent_params):
+
+    herre = HerreClient(**agent_params)
 
     agent = AppAgent(**agent_params)
 

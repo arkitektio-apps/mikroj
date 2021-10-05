@@ -22,9 +22,8 @@ herre:
     - can_provide
     - can_assign
     - can_create
-  clientID: huKQboFgvLaqfVb23QAJ7Kchp9Rzl87vCVRgWHjZ
-  client_id: 9B3T1AV7DgvetbF7QR8AIq2Oz2GuYEuGaU8tgvRE
-  client_secret: 28a7eS6LqfO5KxouHEpy97gvv4LDA34E8ijxbtpZ2PxHsr6aHBmY72hOUXWIHsZq6jE4RNVgGMubzarsAnuN47H0CqDcDjidxGcWcRD7ubOWq78a83JPPwoWDMOUftdm
+  client_id: hmtwKgUO092bYBOvHngL5HVikS2q5aWbS7V1ofdU
+  client_secret: V0RqJveg5391edG9EQ30n8JqQev1GI1CxhbHYMG6oJer5nxllpwPyjy9yfETemESzrysPUnqwAVAJSa0wHv2AdrUFGOzjwR2kBrscIHWrVRRYK4soFBYY4rTujpWiyWP
   authorization_grant_type: AUTHORIZATION_CODE
   redirect_uri: http://localhost:3000
   jupyter_sync: True
