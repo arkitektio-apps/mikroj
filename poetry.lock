@@ -36,6 +36,17 @@ yarl = ">=1.0,<2.0"
 speedups = ["aiodns", "brotlipy", "cchardet"]
 
 [[package]]
+name = "aiohttp-cors"
+version = "0.7.0"
+description = "CORS support for aiohttp"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+aiohttp = ">=1.1"
+
+[[package]]
 name = "aioitertools"
 version = "0.8.0"
 description = "itertools and builtins for AsyncIO and mixed iterables"
@@ -53,7 +64,7 @@ python-versions = "*"
 
 [[package]]
 name = "arkitekt"
-version = "0.1.17"
+version = "0.1.38"
 description = "rpc and node backbone"
 category = "main"
 optional = false
@@ -61,10 +72,18 @@ python-versions = ">=3.8,<4.0"
 
 [package.dependencies]
 docstring-parser = ">=0.10,<0.11"
-herre = ">=0.1.5,<0.2.0"
+herre = "0.1.26"
 inflection = ">=0.5.1,<0.6.0"
 janus = ">=0.6.1,<0.7.0"
 websockets = ">=10.0,<11.0"
+
+[[package]]
+name = "asciitree"
+version = "0.3.3"
+description = "Draws ASCII trees."
+category = "main"
+optional = false
+python-versions = "*"
 
 [[package]]
 name = "async-timeout"
@@ -198,6 +217,32 @@ optional = false
 python-versions = ">=3.5"
 
 [[package]]
+name = "fakts"
+version = "0.1.5"
+description = "easy configuration discovery based on UDP broadcasts and konfig beacons (servers that redirect configs back to the client)"
+category = "main"
+optional = false
+python-versions = ">=3.8,<4.0"
+
+[package.dependencies]
+aiohttp_cors = ">=0.7.0,<0.8.0"
+koil = ">=0.1.29,<0.2.0"
+pydantic = ">=1.8.2,<2.0.0"
+PyYAML = ">=5.4.1,<6.0.0"
+QtPy = ">=1.11.2,<2.0.0"
+
+[[package]]
+name = "fasteners"
+version = "0.16.3"
+description = "A python package that provides useful locks."
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+six = "*"
+
+[[package]]
 name = "filelock"
 version = "3.0.12"
 description = "A platform independent file lock."
@@ -245,7 +290,7 @@ python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 
 [[package]]
 name = "herre"
-version = "0.1.13"
+version = "0.1.26"
 description = "The governing package for modules of the arnheim framework, it provides core features like wards, the event loop and authentication with an oauth provider"
 category = "main"
 optional = false
@@ -253,6 +298,7 @@ python-versions = ">=3.8,<4.0"
 
 [package.dependencies]
 aiohttp = ">=3.7.4,<4.0.0"
+fakts = ">=0.1.5,<0.2.0"
 pydantic = ">=1.8.2,<2.0.0"
 PyYAML = ">=5.4.1,<6.0.0"
 QtPy = ">=1.11.1,<2.0.0"
@@ -348,6 +394,21 @@ optional = false
 python-versions = ">=3.7"
 
 [[package]]
+name = "koil"
+version = "0.1.29"
+description = "An abstract event loop to run in an async and sync context (especially jupyter and qt), with utility functions to allow both accesses"
+category = "main"
+optional = false
+python-versions = ">=3.6.1,<4.0.0"
+
+[package.dependencies]
+pydantic = ">=1.8.2,<2.0.0"
+qtpy = ">1"
+
+[package.extras]
+jupyter = ["jupyter (>=1.0.0,<2.0.0)"]
+
+[[package]]
 name = "macholib"
 version = "1.15.2"
 description = "Mach-O header analysis and editing"
@@ -357,6 +418,17 @@ python-versions = "*"
 
 [package.dependencies]
 altgraph = ">=0.15"
+
+[[package]]
+name = "markdown"
+version = "3.3.4"
+description = "Python implementation of Markdown."
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.extras]
+testing = ["coverage", "pyyaml"]
 
 [[package]]
 name = "matplotlib"
@@ -376,7 +448,7 @@ python-dateutil = ">=2.7"
 
 [[package]]
 name = "mikro"
-version = "0.1.13"
+version = "0.1.25"
 description = "images for arnheim"
 category = "main"
 optional = false
@@ -384,10 +456,11 @@ python-versions = ">=3.8,<4.0"
 
 [package.dependencies]
 docstring-parser = ">=0.10,<0.11"
-herre = ">=0.1.2,<0.2.0"
+herre = ">=0.1.26,<0.2.0"
 inflection = ">=0.5.1,<0.6.0"
-s3fs = ">=2021.8.1,<2022.0.0"
+s3fs = ">=2021.9.0,<2022.0.0"
 xarray = ">=0.19.0,<0.20.0"
+zarr = "2.8.3"
 
 [[package]]
 name = "multidict"
@@ -396,6 +469,20 @@ description = "multidict implementation"
 category = "main"
 optional = false
 python-versions = ">=3.6"
+
+[[package]]
+name = "numcodecs"
+version = "0.9.1"
+description = "A Python package providing buffer compression and transformation codecs for use in data storage and communication applications."
+category = "main"
+optional = false
+python-versions = ">=3.6, <4"
+
+[package.dependencies]
+numpy = ">=1.7"
+
+[package.extras]
+msgpack = ["msgpack"]
 
 [[package]]
 name = "numpy"
@@ -909,10 +996,27 @@ python-versions = ">=3.6"
 idna = ">=2.0"
 multidict = ">=4.0"
 
+[[package]]
+name = "zarr"
+version = "2.8.3"
+description = "An implementation of chunked, compressed, N-dimensional arrays for Python."
+category = "main"
+optional = false
+python-versions = ">=3.6, <4"
+
+[package.dependencies]
+asciitree = "*"
+fasteners = "*"
+numcodecs = ">=0.6.4"
+numpy = ">=1.7"
+
+[package.extras]
+jupyter = ["notebook", "ipytree"]
+
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "298fc80cd19d784acdd28eb21f3d81f1e2e4868f213fd455318d43430fcc513b"
+content-hash = "979c5edd6a2497135f8d8de8d2d2021b74fa6044b19f8af4cb13c54fdc714863"
 
 [metadata.files]
 aiobotocore = [
@@ -957,6 +1061,10 @@ aiohttp = [
     {file = "aiohttp-3.7.4.post0-cp39-cp39-win_amd64.whl", hash = "sha256:02f46fc0e3c5ac58b80d4d56eb0a7c7d97fcef69ace9326289fb9f1955e65cfe"},
     {file = "aiohttp-3.7.4.post0.tar.gz", hash = "sha256:493d3299ebe5f5a7c66b9819eacdcfbbaaf1a8e84911ddffcdc48888497afecf"},
 ]
+aiohttp-cors = [
+    {file = "aiohttp-cors-0.7.0.tar.gz", hash = "sha256:4d39c6d7100fd9764ed1caf8cebf0eb01bf5e3f24e2e073fda6234bc48b19f5d"},
+    {file = "aiohttp_cors-0.7.0-py3-none-any.whl", hash = "sha256:0451ba59fdf6909d0e2cd21e4c0a43752bc0703d33fc78ae94d9d9321710193e"},
+]
 aioitertools = [
     {file = "aioitertools-0.8.0-py3-none-any.whl", hash = "sha256:3a141f01d1050ac8c01917aee248d262736dab875ce0471f0dba5f619346b452"},
     {file = "aioitertools-0.8.0.tar.gz", hash = "sha256:8b02facfbc9b0f1867739949a223f3d3267ed8663691cc95abd94e2c1d8c2b46"},
@@ -966,8 +1074,11 @@ altgraph = [
     {file = "altgraph-0.17.2.tar.gz", hash = "sha256:ebf2269361b47d97b3b88e696439f6e4cbc607c17c51feb1754f90fb79839158"},
 ]
 arkitekt = [
-    {file = "arkitekt-0.1.17-py3-none-any.whl", hash = "sha256:a66a63f2b4944cbdea842ff21ead0c533d3682dd1b24bd4a3655efd24fc17cbd"},
-    {file = "arkitekt-0.1.17.tar.gz", hash = "sha256:baa2b9530d2891ec91462f722b6790de8b5205ca7196bb1bbfe51db5ecea1e4d"},
+    {file = "arkitekt-0.1.38-py3-none-any.whl", hash = "sha256:16513ecc2aad5c0c5c0769df8f9af58dc5876c769bdb65155c34ba4dddafec9b"},
+    {file = "arkitekt-0.1.38.tar.gz", hash = "sha256:ea154f224a505003e70c5643d26d044b1feb6c133da740d7983874ecd18c05c2"},
+]
+asciitree = [
+    {file = "asciitree-0.3.3.tar.gz", hash = "sha256:4aa4b9b649f85e3fcb343363d97564aa1fb62e249677f2e18a96765145cc0f6e"},
 ]
 async-timeout = [
     {file = "async-timeout-3.0.1.tar.gz", hash = "sha256:0c3c816a028d47f659d6ff5c745cb2acf1f966da1fe5c19c77a70282b25f4c5f"},
@@ -1020,6 +1131,14 @@ distlib = [
 docstring-parser = [
     {file = "docstring_parser-0.10.tar.gz", hash = "sha256:d75c81533f70e3902c54d0cfe5f896b65905772004c1eb9ee38a2526b077940d"},
 ]
+fakts = [
+    {file = "fakts-0.1.5-py3-none-any.whl", hash = "sha256:03815ebb3fced7444c77be575e95091dc127a9f3708a35a7a455e665ae134f8f"},
+    {file = "fakts-0.1.5.tar.gz", hash = "sha256:59c206851a5db2e3d10f2b83220c3ca623294bdde01efcbf95c60bdaa29956e1"},
+]
+fasteners = [
+    {file = "fasteners-0.16.3-py2.py3-none-any.whl", hash = "sha256:8408e52656455977053871990bd25824d85803b9417aa348f10ba29ef0c751f7"},
+    {file = "fasteners-0.16.3.tar.gz", hash = "sha256:b1ab4e5adfbc28681ce44b3024421c4f567e705cc3963c732bf1cba3348307de"},
+]
 filelock = [
     {file = "filelock-3.0.12-py3-none-any.whl", hash = "sha256:929b7d63ec5b7d6b71b0fa5ac14e030b3f70b75747cef1b10da9b879fef15836"},
     {file = "filelock-3.0.12.tar.gz", hash = "sha256:18d82244ee114f543149c66a6e0c14e9c4f8a1044b5cdaadd0f82159d6a6ff59"},
@@ -1032,8 +1151,8 @@ future = [
     {file = "future-0.18.2.tar.gz", hash = "sha256:b1bead90b70cf6ec3f0710ae53a525360fa360d306a86583adc6bf83a4db537d"},
 ]
 herre = [
-    {file = "herre-0.1.13-py3-none-any.whl", hash = "sha256:8aa742da68d1e15a939aca54250f31eb81c5bdf03d8e46a9fa3af0fa55c3a0ff"},
-    {file = "herre-0.1.13.tar.gz", hash = "sha256:09ea10d1245893b16c6af004c603a607fc4b3df3db3ef35987551e4bd1cd04c3"},
+    {file = "herre-0.1.26-py3-none-any.whl", hash = "sha256:278fe8a89864a9c8c11601653ba61e87b5094ce64e8e235569b6ee17e821e626"},
+    {file = "herre-0.1.26.tar.gz", hash = "sha256:f54251cb3ab4eeb9882d13de252acc04c682fd778ed9800e63fd8cdbdd81274c"},
 ]
 idna = [
     {file = "idna-3.2-py3-none-any.whl", hash = "sha256:14475042e284991034cb48e06f6851428fb14c4dc953acd9be9a5e95c7b6dd7a"},
@@ -1130,9 +1249,17 @@ kiwisolver = [
     {file = "kiwisolver-1.3.2-pp37-pypy37_pp73-win_amd64.whl", hash = "sha256:bcadb05c3d4794eb9eee1dddf1c24215c92fb7b55a80beae7a60530a91060560"},
     {file = "kiwisolver-1.3.2.tar.gz", hash = "sha256:fc4453705b81d03568d5b808ad8f09c77c47534f6ac2e72e733f9ca4714aa75c"},
 ]
+koil = [
+    {file = "koil-0.1.29-py3-none-any.whl", hash = "sha256:1dfc8e26521851ba94dd2415a522223a1716580359e855eecd75483f74fc46de"},
+    {file = "koil-0.1.29.tar.gz", hash = "sha256:b9d06c73ccab4ddd5c01790f58145e1b9f8006570165b6d1136eea1308d36efe"},
+]
 macholib = [
     {file = "macholib-1.15.2-py2.py3-none-any.whl", hash = "sha256:885613dd02d3e26dbd2b541eb4cc4ce611b841f827c0958ab98656e478b9e6f6"},
     {file = "macholib-1.15.2.tar.gz", hash = "sha256:1542c41da3600509f91c165cb897e7e54c0e74008bd8da5da7ebbee519d593d2"},
+]
+markdown = [
+    {file = "Markdown-3.3.4-py3-none-any.whl", hash = "sha256:96c3ba1261de2f7547b46a00ea8463832c921d3f9d6aba3f255a6f71386db20c"},
+    {file = "Markdown-3.3.4.tar.gz", hash = "sha256:31b5b491868dcc87d6c24b7e3d19a0d730d59d3e46f4eea6430a321bed387a49"},
 ]
 matplotlib = [
     {file = "matplotlib-3.4.3-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:5c988bb43414c7c2b0a31bd5187b4d27fd625c080371b463a6d422047df78913"},
@@ -1158,8 +1285,8 @@ matplotlib = [
     {file = "matplotlib-3.4.3.tar.gz", hash = "sha256:fc4f526dfdb31c9bd6b8ca06bf9fab663ca12f3ec9cdf4496fb44bc680140318"},
 ]
 mikro = [
-    {file = "mikro-0.1.13-py3-none-any.whl", hash = "sha256:ebea744be53bb5004e90e689a1715b29730b15e393ff062daf94ecd39443e184"},
-    {file = "mikro-0.1.13.tar.gz", hash = "sha256:2a51b5acf505d5dbfd3815f1d26ae1851e59266c0a633667991597fa8ac180c7"},
+    {file = "mikro-0.1.25-py3-none-any.whl", hash = "sha256:050b84a4e5b7f49cce16e2aa1ac423137b53b8292a382dfc16722af0970fc4d6"},
+    {file = "mikro-0.1.25.tar.gz", hash = "sha256:33793633c16e126949058c2f43ed46cc69f7ed18c9a48d8fb66a384c4abe95a2"},
 ]
 multidict = [
     {file = "multidict-5.1.0-cp36-cp36m-macosx_10_14_x86_64.whl", hash = "sha256:b7993704f1a4b204e71debe6095150d43b2ee6150fa4f44d6d966ec356a8d61f"},
@@ -1199,6 +1326,37 @@ multidict = [
     {file = "multidict-5.1.0-cp39-cp39-win32.whl", hash = "sha256:fc13a9524bc18b6fb6e0dbec3533ba0496bbed167c56d0aabefd965584557d80"},
     {file = "multidict-5.1.0-cp39-cp39-win_amd64.whl", hash = "sha256:7df80d07818b385f3129180369079bd6934cf70469f99daaebfac89dca288359"},
     {file = "multidict-5.1.0.tar.gz", hash = "sha256:25b4e5f22d3a37ddf3effc0710ba692cfc792c2b9edfb9c05aefe823256e84d5"},
+]
+numcodecs = [
+    {file = "numcodecs-0.9.1-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:2cf6f57cced28ee4590e451b89d9b6c5b2ac2a8251dcc27b7448c11976732944"},
+    {file = "numcodecs-0.9.1-cp36-cp36m-manylinux1_i686.whl", hash = "sha256:69b1247999a2057542d52532db8ad54bedeb4c9d9c764a68a6908d33dab96e47"},
+    {file = "numcodecs-0.9.1-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:4dec71b95c99a4c5c6ead93741684652ac27723044daad9ee567c2e5569f5514"},
+    {file = "numcodecs-0.9.1-cp36-cp36m-manylinux2010_i686.whl", hash = "sha256:0d5f7bb538727baf6bd8ff142bdbee8babd0be1d7fecbdd9a9cda18614979c1b"},
+    {file = "numcodecs-0.9.1-cp36-cp36m-manylinux2010_x86_64.whl", hash = "sha256:ec5e9eb6f3572c5f24674cc43716f7757b4502db6fb577798380930ecf54f83b"},
+    {file = "numcodecs-0.9.1-cp36-cp36m-win32.whl", hash = "sha256:2e8dbe2da7f9578331d02cd9b010ea446dc45c225f79b6d12b11f17a1106c89a"},
+    {file = "numcodecs-0.9.1-cp36-cp36m-win_amd64.whl", hash = "sha256:96ae1068868762580dbf4596ab82731215524054e99ab0d6f135c49266dd2b40"},
+    {file = "numcodecs-0.9.1-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:cc7b3c526e866404e7555588f61b358728701637f3d02af1e79b80af7fcd99b7"},
+    {file = "numcodecs-0.9.1-cp37-cp37m-manylinux1_i686.whl", hash = "sha256:3e5b6690910e642e506b47838a3440680eb03291626c5b19b6295e985d4c144b"},
+    {file = "numcodecs-0.9.1-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:f3e831385dd68bbca338b284631cb94076579150744d15f4ca1bfb40e7acb1b8"},
+    {file = "numcodecs-0.9.1-cp37-cp37m-manylinux2010_i686.whl", hash = "sha256:aa5445c236e5e2879be16f0c65dc9a0275f089ed4fc1cb23aae366dbbd7d06f8"},
+    {file = "numcodecs-0.9.1-cp37-cp37m-manylinux2010_x86_64.whl", hash = "sha256:13968843c19bf611c0091f158cc3f9e39a2eca7c2fb378a53703e7f2c4d57e49"},
+    {file = "numcodecs-0.9.1-cp37-cp37m-win32.whl", hash = "sha256:2ac9ff3f77948226fa3943581a822fa4ad83a21ffe6cce203ee9fe1ee781ed6d"},
+    {file = "numcodecs-0.9.1-cp37-cp37m-win_amd64.whl", hash = "sha256:28e37d461a01176055dcc3fbba57feb78914b84462d5609a3bbfec547da7350a"},
+    {file = "numcodecs-0.9.1-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:e2c57c7803b2d0ace06c3108a36fc6831bc55da8d3614a753ec3ec610c76b771"},
+    {file = "numcodecs-0.9.1-cp38-cp38-manylinux1_i686.whl", hash = "sha256:39ff239648cf3fa6aa815d8c46cd2e2eed389a438ea78e57cf13dddc64d575c0"},
+    {file = "numcodecs-0.9.1-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:20eb92fdc127e4aca6032bcc516ae96aff1e4f1d3ee8caec5989b66f9232cc43"},
+    {file = "numcodecs-0.9.1-cp38-cp38-manylinux2010_i686.whl", hash = "sha256:b5d0f6d2bae464b65e138037ab971125eec7305ce6e43d88b35c62e8c12f8386"},
+    {file = "numcodecs-0.9.1-cp38-cp38-manylinux2010_x86_64.whl", hash = "sha256:3fdb7b43984d77f7fa7e7fb0776ad552d1bd7c078bc08564b439202235f52cbe"},
+    {file = "numcodecs-0.9.1-cp38-cp38-win32.whl", hash = "sha256:40f486f8f2d37048ea626e69ec0a08a01c58086bd262d8c2c0f8957122d87af2"},
+    {file = "numcodecs-0.9.1-cp38-cp38-win_amd64.whl", hash = "sha256:b0071925a56d6a32c97ebfaf9ee1e6f2e0c9df3239ccdda1f69306d4f44f0f5a"},
+    {file = "numcodecs-0.9.1-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:041cf29232b72ef9e0de92b0b182d9eb35819d84c0144b261c911a8c83840596"},
+    {file = "numcodecs-0.9.1-cp39-cp39-manylinux1_i686.whl", hash = "sha256:368274b49c80c1fb99481d0afb3a660c069a165b34cc2d1878e9d43058648dcc"},
+    {file = "numcodecs-0.9.1-cp39-cp39-manylinux1_x86_64.whl", hash = "sha256:3978aabf5967d69802becd38508f865d057020a0fdbfa355d736090e6e983d3e"},
+    {file = "numcodecs-0.9.1-cp39-cp39-manylinux2010_i686.whl", hash = "sha256:ad12f1af033b4c36587d923abfabe90a81043912a3f94df790172e1d837b6238"},
+    {file = "numcodecs-0.9.1-cp39-cp39-manylinux2010_x86_64.whl", hash = "sha256:c16e28c7907f96e097c74be47490c88e0b5040f862a754892c96e78e7b8aea1b"},
+    {file = "numcodecs-0.9.1-cp39-cp39-win32.whl", hash = "sha256:0bb491c53718b9e7dce8719208c1b0021f31d2544add63014f65304efd140cb8"},
+    {file = "numcodecs-0.9.1-cp39-cp39-win_amd64.whl", hash = "sha256:334110d78cb56d2281cce570f8434a4ed1080b3fb288df9594d82e5bfa42d16f"},
+    {file = "numcodecs-0.9.1.tar.gz", hash = "sha256:35adbcc746b95e3ac92e949a161811f5aa2602b9eb1ef241b5ea6f09bb220997"},
 ]
 numpy = [
     {file = "numpy-1.21.1-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:38e8648f9449a549a7dfe8d8755a5979b45b3538520d1e735637ef28e8c2dc50"},
@@ -1616,4 +1774,8 @@ yarl = [
     {file = "yarl-1.6.3-cp39-cp39-win32.whl", hash = "sha256:5b883e458058f8d6099e4420f0cc2567989032b5f34b271c0827de9f1079a424"},
     {file = "yarl-1.6.3-cp39-cp39-win_amd64.whl", hash = "sha256:4953fb0b4fdb7e08b2f3b3be80a00d28c5c8a2056bb066169de00e6501b986b6"},
     {file = "yarl-1.6.3.tar.gz", hash = "sha256:8a9066529240171b68893d60dca86a763eae2139dd42f42106b03cf4b426bf10"},
+]
+zarr = [
+    {file = "zarr-2.8.3-py3-none-any.whl", hash = "sha256:9357fb40ce0bffdf81b9aac912c83829618ea367b7898f5a150eecde4cfa1338"},
+    {file = "zarr-2.8.3.tar.gz", hash = "sha256:8aece33269ba3ee2af9320aa528d5fe93f76c30e4ad7fdbfb604b1db3f0d779f"},
 ]

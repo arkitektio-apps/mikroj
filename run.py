@@ -1,4 +1,4 @@
-from mikroj.run import main
+from mikroj.main import main
 
 
-main(config_path="mikroj.yaml")
+main()
