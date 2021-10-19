@@ -133,6 +133,8 @@ class MikroJ(QtWidgets.QMainWindow):
         self.setCentralWidget(self.arkitektWidget)
         self.init_ui() 
 
+
+
     def show_image_assign(self, res, args, kwargs):
         self.runner.helper.displayRep(args[0])
         self.showActor.signals.assign.resolve.emit(res, None)
