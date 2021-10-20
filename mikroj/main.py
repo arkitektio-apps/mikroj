@@ -15,7 +15,7 @@ from fakts.grants.yaml import YamlGrant
 from fakts.qt import QtFakts
 from mikro import Representation
 from mikroj.agent import MikroJAgent
-from mikroj.env import PLUGIN_PATH
+from mikroj.env import PLUGIN_PATH, get_asset_file
 from mikroj.helper import ImageJHelper
 from arkitekt.agents.qt import QtAgent
 from mikro.widgets import MY_TOP_REPRESENTATIONS
@@ -113,7 +113,7 @@ class MikroJ(QtWidgets.QMainWindow):
     def __init__(self, **kwargs):
         super().__init__()
         #self.setWindowIcon(QtGui.QIcon(os.path.join(os.getcwd(), 'share\\assets\\icon.png')))
-
+        self.setWindowIcon(QtGui.QIcon(get_asset_file("logo.ico")))
 
         self.runner = ImageJRunner()
         self.arkitektWidget = ArkitektWidget(self.runner.helper, **kwargs)

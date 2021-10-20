@@ -4,10 +4,10 @@
 block_cipher = None
 
 
-a = Analysis(['test.py'],
+a = Analysis(['entrypoint.py'],
              pathex=['C:\\Users\\jhnns\\Code\\mikroj'],
              binaries=[],
-             datas=[],
+             datas=[('share', 'share')],
              hiddenimports=[],
              hookspath=['hooks'],
              hooksconfig={},
@@ -24,16 +24,16 @@ exe = EXE(pyz,
           a.scripts, 
           [],
           exclude_binaries=True,
-          name='test',
+          name='MikroJ',
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
-          console=True,
+          console=False,
           disable_windowed_traceback=False,
           target_arch=None,
           codesign_identity=None,
-          entitlements_file=None )
+          entitlements_file=None , icon='mikroj-logo.ico')
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
@@ -41,4 +41,4 @@ coll = COLLECT(exe,
                strip=False,
                upx=True,
                upx_exclude=[],
-               name='test')
+               name='MikroJ')
