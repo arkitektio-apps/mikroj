@@ -11,7 +11,6 @@ class FuncMacroActor(FunctionalFuncActor):
 
     async def on_provide(self, message: BouncedProvideMessage):
         self.helper = self.agent.helper
-        print(self.macro)
         assert self.template, " please provide a template"
 
 
@@ -29,7 +28,6 @@ class GenMacroActor(FunctionalGenActor):
 
     async def on_provide(self, message: BouncedProvideMessage):
         self.helper = self.agent.helper
-        print(self.macro)
         assert self.template, " please provide a template"
 
 

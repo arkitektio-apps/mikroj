@@ -1,7 +1,9 @@
 from arkitekt.agents.qt import QtAgent
 from arkitekt.schema.node import Node
 from mikroj.registries.macro import get_current_macro_registry, QueryNodeDefinition
+import logging
 
+logger = logging.getLogger(__name__)
 
 class MikroJAgent(QtAgent):
 
@@ -12,7 +14,7 @@ class MikroJAgent(QtAgent):
 
 
     def load_macros(self, filepath):
-        print(f"Called {filepath}")
+        logger.debug(f"Opening Macros in {filepath}")
         macro_associations = get_current_macro_registry().scan_folder(folder_path=filepath)
 
         for defi, actor in macro_associations:

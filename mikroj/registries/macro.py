@@ -43,11 +43,10 @@ class MacroRegistry:
 
         pathlist = pathlib.Path(folder_path).rglob('*.md')
         macro_list = []
-        print(folder_path)
         for path in pathlist:
             # because path is object not string
             path_in_str = str(path)
-            print(path)
+            logger.debug(f"Found file {path}")
             with open(path_in_str) as f:
                 try: 
                     stream = f.read()
@@ -62,9 +61,8 @@ class MacroRegistry:
                     codes = [parser(stream=stream).get_code() for parser in code_parsers]
 
                     combined_definition = reduce(lambda x, y: {**x, **y} if x else y, definitions, {})
-                    print(combined_definition)
 
-                    
+                
                     if "template" in combined_definition and combined_definition["template"] == "yes":
                         definition = QueryNodeDefinition(**combined_definition)
                     else:
@@ -91,20 +89,20 @@ class MacroRegistry:
 
 
 def register_definition_parser(className: str):
-    print("Registering Grant")
 
     def rea_decorator(parser):
         assert issubclass(parser, Parser), "Parser must subclass Parser"
+        logger.info(f"Registering Definition Parser {parser} for {className}")
         get_current_macro_registry().register_definition_parser(className, parser)
         return parser
 
     return rea_decorator
 
 def register_code_parser(className: str):
-    print("Registering Grant")
 
     def rea_decorator(parser):
         assert issubclass(parser, Parser), "Parser must subclass Parser"
+        logger.info(f"Registering Code parser {parser} for {className}")
         get_current_macro_registry().register_code_parser(className, parser)
         return parser
 

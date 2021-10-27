@@ -4,7 +4,9 @@ from mikroj.parsers.code.base import CodeParser
 import pathlib
 from functools import reduce
 from mikroj.parsers.meta import parse_md_meta
+import logging
 
+logger = logging.getLogger(__name__)
 
 class MacroActorRegistry:
 
@@ -22,13 +24,13 @@ class MacroActorRegistry:
 
 
 def register_macro_actor(className: str):
-    print(f"Registering Macro Actors {className}")
 
-    def rea_decorator(parser):
-        get_current_macro_actor_registry().register_actor(className, parser)
-        return parser
+    def real_decorator(macro_actor):
+        logger.info(f"Registering Macro Actor {macro_actor} for {className}")
+        get_current_macro_actor_registry().register_actor(className, macro_actor)
+        return macro_actor
 
-    return rea_decorator
+    return real_decorator
 
 
 

@@ -71,15 +71,14 @@ class ArkitektWidget(QtWidgets.QWidget):
 
         # Different Grants
 
-        self.file_grant = QtYamlGrant("querk.yaml")
+        self.file_grant = QtYamlGrant()
         self.beacon_grant = QtSelectableBeaconGrant()
-        self.fakts = QtFakts(grants=[self.file_grant, self.beacon_grant], save_conf="querk.yaml")
+        self.fakts = QtFakts(grants=[self.file_grant, self.beacon_grant], name="mikroj")
         self.herre = QtHerre()
         self.agent = MikroJAgent(helper, self)
 
         self.magic_bar = MagicBar(self.fakts, self.herre, self.agent)
         self.agent.load_macros(PLUGIN_PATH)
-
 
         self.layout = QtWidgets.QVBoxLayout()
 
