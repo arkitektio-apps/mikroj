@@ -9,8 +9,8 @@ from pydantic.class_validators import extract_root_validators
 from herre.qt import QtHerre
 from pydantic.main import BaseModel
 from arkitekt.messages.base import T
-from fakts.grants.qtbeacon import QtSelectableBeaconGrant
-from fakts.grants.qtyamlgrant import QtYamlGrant
+from fakts.grants.qt.qtbeacon import QtSelectableBeaconGrant
+from fakts.grants.qt.qtyamlgrant import QtYamlGrant
 from fakts.grants.yaml import YamlGrant
 from fakts.qt import QtFakts
 from mikro import Representation
@@ -71,9 +71,8 @@ class ArkitektWidget(QtWidgets.QWidget):
 
         # Different Grants
 
-        self.file_grant = QtYamlGrant()
         self.beacon_grant = QtSelectableBeaconGrant()
-        self.fakts = QtFakts(grants=[self.file_grant, self.beacon_grant], name="mikroj")
+        self.fakts = QtFakts(grants=[self.beacon_grant], hard_fakts={"herre": {"client_id": "hmtwKgUO092bYBOvHngL5HVikS2q5aWbS7V1ofdU", "scopes": ["introspection","can_provide"]}})
         self.herre = QtHerre()
         self.agent = MikroJAgent(helper, self)
 

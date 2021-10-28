@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mikroj"
-version = "0.1.11"
+version = "0.1.13"
 description = ""
 authors = ["jhnnsrs <jhnnsrs@gmail.com>"]
 license = "CC BY-NC 3.0"
@@ -9,8 +9,8 @@ packages = [{include = "mikroj"}]
 [tool.poetry.dependencies]
 python = "^3.8"
 pyimagej = "^1.0.1"
-arkitekt = "^0.1.45"
-mikro = "^0.1.27"
+arkitekt = "^0.1.65"
+mikro = "^0.1.28"
 PyQt5 = "^5.15.4"
 PyQtWebEngine = "^5.15.4"
 Markdown = "^3.3.4"
