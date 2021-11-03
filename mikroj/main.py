@@ -118,7 +118,7 @@ class MikroJ(QtWidgets.QMainWindow):
             show_image, widgets={"rep": MY_TOP_REPRESENTATIONS}
         )
 
-        self.showActor.signals.assign.call.connect(self.show_image_assign)
+        self.showActor.signals.assign.wire(self.show_image_assign)
 
         self.thread = QtCore.QThread(self)
         self.runner.init_signal.connect(self.imagej_done)
@@ -132,7 +132,7 @@ class MikroJ(QtWidgets.QMainWindow):
 
     def show_image_assign(self, res, args, kwargs):
         self.runner.helper.displayRep(args[0])
-        self.showActor.signals.assign.resolve.emit(res, None)
+        self.showActor.signals.assign.resolve(res, None)
 
     def imagej_done(self, str):
         # self.arkitektWidget.start_button.setDisabled(False)
