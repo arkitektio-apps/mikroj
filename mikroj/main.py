@@ -17,7 +17,7 @@ from mikro import Representation
 from mikroj.agent import MikroJAgent
 from mikroj.env import PLUGIN_PATH, get_asset_file
 from mikroj.helper import ImageJHelper
-from arkitekt.agents.qt import QtAgent
+from arkitekt.qt.agent import QtAgent
 from mikro.widgets import MY_TOP_REPRESENTATIONS
 from arkitekt.qt.widgets.provisions import ProvisionsWidget
 from arkitekt.qt.widgets.templates import TemplatesWidget
@@ -28,29 +28,26 @@ import os
 packaged = False
 
 if packaged:
-    os.environ['JAVA_HOME'] = os.path.join(os.getcwd(), 'share\\jdk8')
-    os.environ['PATH'] = os.path.join(os.getcwd(), 'share\\mvn\\bin') + os.pathsep + os.environ['PATH']
+    os.environ["JAVA_HOME"] = os.path.join(os.getcwd(), "share\\jdk8")
+    os.environ["PATH"] = (
+        os.path.join(os.getcwd(), "share\\mvn\\bin") + os.pathsep + os.environ["PATH"]
+    )
 
 
 class ImageJRunner(QObject):
     init_signal = QtCore.pyqtSignal(str)
 
-
     def __init__(self, *args, **kwargs) -> None:
-        super().__init__( *args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.helper = None
 
     def run_it(self):
         # I'm guessing this is an infinite while loop that monitors files
         self.helper = ImageJHelper()
-        self.init_signal.emit('yes')
-
-
-
+        self.init_signal.emit("yes")
 
 
 class FormWrapped(QtWidgets.QWidget):
-
     def __init__(self, widget, title, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.layout = QtWidgets.QHBoxLayout()
@@ -62,17 +59,23 @@ class FormWrapped(QtWidgets.QWidget):
         self.setLayout(self.layout)
 
 
-
 class ArkitektWidget(QtWidgets.QWidget):
-
-
     def __init__(self, helper, *args, config_path=None, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
         # Different Grants
 
         self.beacon_grant = QtSelectableBeaconGrant()
-        self.fakts = QtFakts(grants=[self.beacon_grant], hard_fakts={"herre": {"client_id": "hmtwKgUO092bYBOvHngL5HVikS2q5aWbS7V1ofdU", "scopes": ["introspection","can_provide"]}})
+        self.fakts = QtFakts(
+            grants=[self.beacon_grant],
+            subapp="mikroj",
+            hard_fakts={
+                "herre": {
+                    "client_id": "hmtwKgUO092bYBOvHngL5HVikS2q5aWbS7V1ofdU",
+                    "scopes": ["introspection", "can_provide"],
+                }
+            },
+        )
         self.herre = QtHerre()
         self.agent = MikroJAgent(helper, self)
 
@@ -81,18 +84,13 @@ class ArkitektWidget(QtWidgets.QWidget):
 
         self.layout = QtWidgets.QVBoxLayout()
 
-
         self.provisions_widget = FormWrapped(ProvisionsWidget(self.agent), "Provisions")
         self.templates_widget = FormWrapped(TemplatesWidget(self.agent), "Templates")
-
 
         self.layout.addWidget(self.magic_bar)
         self.layout.addWidget(self.provisions_widget)
         self.layout.addWidget(self.templates_widget)
         self.setLayout(self.layout)
-
-
-
 
 
 def show_image(rep: Representation):
@@ -105,12 +103,10 @@ def show_image(rep: Representation):
     """
 
 
-
-
 class MikroJ(QtWidgets.QMainWindow):
     def __init__(self, **kwargs):
         super().__init__()
-        #self.setWindowIcon(QtGui.QIcon(os.path.join(os.getcwd(), 'share\\assets\\icon.png')))
+        # self.setWindowIcon(QtGui.QIcon(os.path.join(os.getcwd(), 'share\\assets\\icon.png')))
         self.setWindowIcon(QtGui.QIcon(get_asset_file("logo.ico")))
 
         self.runner = ImageJRunner()
@@ -118,7 +114,10 @@ class MikroJ(QtWidgets.QMainWindow):
 
         self.agent = self.arkitektWidget.agent
 
-        self.showActor = self.agent.register(show_image, widgets={"rep": MY_TOP_REPRESENTATIONS})
+        self.showActor = self.agent.register_ui(
+            show_image, widgets={"rep": MY_TOP_REPRESENTATIONS}
+        )
+
         self.showActor.signals.assign.call.connect(self.show_image_assign)
 
         self.thread = QtCore.QThread(self)
@@ -129,28 +128,28 @@ class MikroJ(QtWidgets.QMainWindow):
         self.thread.start()
         self.arkitektWidget.magic_bar.magicb.setDisabled(True)
         self.setCentralWidget(self.arkitektWidget)
-        self.init_ui() 
-
-
+        self.init_ui()
 
     def show_image_assign(self, res, args, kwargs):
         self.runner.helper.displayRep(args[0])
         self.showActor.signals.assign.resolve.emit(res, None)
-        
+
     def imagej_done(self, str):
-        #self.arkitektWidget.start_button.setDisabled(False)
-        #self.arkitektWidget.start_button.setText("Assign")
+        # self.arkitektWidget.start_button.setDisabled(False)
+        # self.arkitektWidget.start_button.setText("Assign")
         self.arkitektWidget.magic_bar.magicb.setDisabled(False)
 
     def init_ui(self):
-        self.setWindowTitle('MikroJ')
+        self.setWindowTitle("MikroJ")
         self.show()
+
 
 def main(**kwargs):
     app = QtWidgets.QApplication(sys.argv)
-    #app.setWindowIcon(QtGui.QIcon(os.path.join(os.getcwd(), 'share\\assets\\icon.png')))
+    # app.setWindowIcon(QtGui.QIcon(os.path.join(os.getcwd(), 'share\\assets\\icon.png')))
     main_window = MikroJ(**kwargs)
     sys.exit(app.exec_())
+
 
 if __name__ == "__main__":
     main()
