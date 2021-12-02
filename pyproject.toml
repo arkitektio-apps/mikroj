@@ -9,8 +9,8 @@ packages = [{include = "mikroj"}]
 [tool.poetry.dependencies]
 python = "^3.8"
 pyimagej = "^1.0.1"
-arkitekt = "^0.1.91"
-mikro = "^0.1.43"
+arkitekt = "^0.1.106"
+mikro = "^0.1.57"
 PyQt5 = "^5.15.4"
 Markdown = "^3.3.4"
 

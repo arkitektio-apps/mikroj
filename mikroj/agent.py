@@ -17,8 +17,10 @@ class MikroJAgent(QtAgent):
             folder_path=filepath
         )
 
-        for defi, actor in macro_associations:
+        for defi, actorBuilder in macro_associations:
             if isinstance(defi, QueryNodeDefinition):
-                self.templatedUnqueriedNodes.append((defi.dict(), actor, {}))
+                self.registry.templatedUnqueriedNodes.append(
+                    (defi.dict(), actorBuilder, {})
+                )
             if isinstance(defi, Node):
-                self.templatedNewNodes.append((defi, actor, {}))
+                self.registry.templatedNewNodes.append((defi, actorBuilder, {}))

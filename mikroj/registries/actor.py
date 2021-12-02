@@ -8,8 +8,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class MacroActorRegistry:
 
+class MacroActorRegistry:
     def __init__(self) -> None:
         self.registered_actors = {}
 
@@ -20,11 +20,7 @@ class MacroActorRegistry:
         return self.registered_actors[className]
 
 
-
-
-
 def register_macro_actor(className: str):
-
     def real_decorator(macro_actor):
         logger.info(f"Registering Macro Actor {macro_actor} for {className}")
         get_current_macro_actor_registry().register_actor(className, macro_actor)
@@ -33,18 +29,14 @@ def register_macro_actor(className: str):
     return real_decorator
 
 
-
-
-
 MACRO_ACTOR_REGISTRY = None
 
-def get_current_macro_actor_registry(register_defaults = True) -> MacroActorRegistry:
+
+def get_current_macro_actor_registry(register_defaults=True) -> MacroActorRegistry:
     global MACRO_ACTOR_REGISTRY
     if MACRO_ACTOR_REGISTRY is None:
         MACRO_ACTOR_REGISTRY = MacroActorRegistry()
         if register_defaults:
-            from mikroj.actors.stack import StackToStackActor
+            from mikroj.actors.classic import StackToStackActor
 
     return MACRO_ACTOR_REGISTRY
-
-

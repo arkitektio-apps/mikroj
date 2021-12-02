@@ -6,6 +6,8 @@ from PyQt5 import QtCore
 from PyQt5.QtCore import QObject, QRect, Qt, pyqtSignal
 import os
 from pydantic.class_validators import extract_root_validators
+from arkitekt.actors.registry import register
+from arkitekt.qt.utils import register_ui
 from herre.qt import QtHerre
 from pydantic.main import BaseModel
 from arkitekt.messages.base import T
@@ -15,7 +17,7 @@ from fakts.grants.yaml import YamlGrant
 from fakts.qt import QtFakts
 from mikro import Representation
 from mikroj.agent import MikroJAgent
-from mikroj.env import PLUGIN_PATH, get_asset_file
+from mikroj.env import MACROS_PATH, PLUGIN_PATH, get_asset_file
 from mikroj.helper import ImageJHelper
 from arkitekt.qt.agent import QtAgent
 from mikro.widgets import MY_TOP_REPRESENTATIONS
@@ -23,6 +25,8 @@ from arkitekt.qt.widgets.provisions import ProvisionsWidget
 from arkitekt.qt.widgets.templates import TemplatesWidget
 from arkitekt.qt.widgets.magic_bar import MagicBar
 import os
+
+from mikroj.structures.imageplus import ImagePlus
 
 
 packaged = False
@@ -80,7 +84,7 @@ class ArkitektWidget(QtWidgets.QWidget):
         self.agent = MikroJAgent(helper, self)
 
         self.magic_bar = MagicBar(self.fakts, self.herre, self.agent)
-        self.agent.load_macros(PLUGIN_PATH)
+        self.agent.load_macros(MACROS_PATH)
 
         self.layout = QtWidgets.QVBoxLayout()
 
@@ -103,6 +107,27 @@ def show_image(rep: Representation):
     """
 
 
+@register(interfaces=["bridge"])
+def bridge(rep: Representation) -> ImagePlus:
+    """Bridges a thing to a thang
+
+    Bridges an Representation to an In memory Fiji Image
+
+    Args:
+        rep (Representation): [description]
+
+    Returns:
+        ImagePlus: [description]
+    """
+    print(rep)
+    array = rep.data.compute()
+    print(array)
+
+    plus = ImagePlus(array)
+    print(plus)
+    return plus
+
+
 class MikroJ(QtWidgets.QMainWindow):
     def __init__(self, **kwargs):
         super().__init__()
@@ -110,6 +135,7 @@ class MikroJ(QtWidgets.QMainWindow):
         self.setWindowIcon(QtGui.QIcon(get_asset_file("logo.ico")))
 
         self.runner = ImageJRunner()
+
         self.arkitektWidget = ArkitektWidget(self.runner.helper, **kwargs)
 
         self.agent = self.arkitektWidget.agent

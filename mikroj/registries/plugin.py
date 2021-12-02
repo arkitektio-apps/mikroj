@@ -2,9 +2,6 @@ from typing import Optional, Union
 
 import pydantic
 from arkitekt.schema.node import Node
-from mikroj.actors.base import FuncMacroActor
-from mikroj.actors.define_macro import MacroDefinition, define_macro
-from mikroj.actors.classic import ClassicMacroActor
 from mikroj.parsers.base import Parser
 from mikroj.parsers.definition.base import DefinitionParser
 from mikroj.parsers.code.base import CodeParser
@@ -31,7 +28,6 @@ class MacroRegistry:
         self.registered_macros = {}
         self.registered_definition_parser = {}
         self.registered_code_parser = {}
-        self.registered_definitions = {}
 
     def register_definition_parser(self, className, parser):
         self.registered_definition_parser[className] = parser
@@ -39,23 +35,59 @@ class MacroRegistry:
     def register_code_parser(self, className, parser):
         self.registered_code_parser[className] = parser
 
-    def get_definition_for_interface(self, interface) -> MacroDefinition:
-        return self.registered_definitions[interface]
-
     def scan_folder(self, folder_path="macros"):
         assert os.path.exists(folder_path), f"Folder {folder_path} does not exist"
 
-        pathlist = pathlib.Path(folder_path).rglob("*.ijm")
+        pathlist = pathlib.Path(folder_path).rglob("*.md")
         macro_list = []
         for path in pathlist:
             # because path is object not string
             path_in_str = str(path)
             logger.debug(f"Found file {path}")
-            node, definition = define_macro(path_in_str)
-            self.registered_definitions[node.interface] = definition
-            actorBuilder = lambda: ClassicMacroActor()
+            with open(path_in_str) as f:
+                try:
+                    stream = f.read()
 
-            macro_list.append((node, actorBuilder))
+                    meta = parse_md_meta(stream)
+
+                    definition_parsers = [
+                        self.registered_definition_parser[parser]
+                        for parser in meta.get_definition_parsers()
+                    ]
+                    code_parsers = [
+                        self.registered_code_parser[parser]
+                        for parser in meta.get_code_parsers()
+                    ]
+
+                    definitions = [
+                        parser(stream=stream).get_definition()
+                        for parser in definition_parsers
+                    ]
+                    codes = [
+                        parser(stream=stream).get_code() for parser in code_parsers
+                    ]
+
+                    combined_definition = reduce(
+                        lambda x, y: {**x, **y} if x else y, definitions, {}
+                    )
+
+                    if (
+                        "template" in combined_definition
+                        and combined_definition["template"] == "yes"
+                    ):
+                        definition = QueryNodeDefinition(**combined_definition)
+                    else:
+                        definition = Node(**combined_definition)
+
+                    actorBuilder = lambda: get_current_macro_actor_registry().get_actor(
+                        meta.actor
+                    )(macro=codes[0])
+                    macro_list.append((definition, actorBuilder))
+
+                except pydantic.error_wrappers.ValidationError as e:
+                    logger.exception(e)
+                    logger.error(f"Omiting file {path}")
+                    continue
 
         return macro_list
 

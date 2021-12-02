@@ -1,7 +1,7 @@
 ---
-id: time_lapse_color_coder
-title: Time-Lapse Color Coder
-sidebar_label: Real-Time Monitoring
+id: multi_view_reconstruction
+title: MultiView Reconstruction
+sidebar_label: MultiView Reconstruction
 slug: /
 code_parser: groovy
 definition_parser: yaml, meta
@@ -26,24 +26,22 @@ Of course you can call of this steps sequentially.
 
 ```yaml
 args:
-- description: The Image you want to color code
-  identifier: representation
-  key: rep
+- description: The Images you want to reconstruct
+  key: reps
   label: null
   transpile: null
-  typename: StructureArgPort
-  widget:
-	typename: SearchWidget
-	query:
-description: Uses the Time Lapse Color Code Plugin
-interface: color_code_image
-kwargs:
-- description: The Axis you want to color Code
-  key: axis
-  label: Axis
-  transpile: null
-  typename: StringKwargPort
-name: Stack Color Code
+  __typename: ListArgPort
+  child:
+	description: The Images you want to reconstruct
+	identifier: representation
+	key: rep
+	label: null
+	transpile: null
+	__typename: StructureArgPort
+description: Uses the Multiview Reconstruction Macro
+interface: multiview_reconstruct
+name: Multiview Reconstruction
+kwargs: []
 package: test
 returns:
 - description: The color coded Image
@@ -51,15 +49,12 @@ returns:
   key: rep
   label: null
   transpile: null
-  typename: StructureReturnPort
+  __typename: StructureReturnPort
 type: FUNCTION
 typename: Node
 ```
 
 ```groovy
-#@ String Glut (label="johannes", value="Nana")
-#@ Dataset[] listimages
-
 
 var Glut = "Fire";	//default LUT
 var Gstartf = 1;
@@ -163,5 +158,6 @@ selectImage(resultImageID);
 if (GbatchMode == 0)
 	setBatchMode("exit and display");
 }
+
 
 ```

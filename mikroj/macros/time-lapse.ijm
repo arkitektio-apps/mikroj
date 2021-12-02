@@ -1,71 +1,20 @@
----
-id: time_lapse_color_coder
-title: Time-Lapse Color Coder
-sidebar_label: Real-Time Monitoring
-slug: /
-code_parser: groovy
-definition_parser: yaml, meta
-actor: stacktostack
-version: 1.0
-template: no
----
-
-## Introduction
-
-Coming back to our original example.
-
-You have three computers in your lab, each equipped with one essential equipment for your analysis flow:
-
-1. Machine A is the Microscope with some organoid samples.
-2. Machine B is your Deep-Learning workstation, without any display.
-3. Machine C is your personal Computer with ImageJ installed.
-
-You want to sequentially acquire an image from your microscope, segment it in your deep learning workstation and then display the result on Napari in your office.
-
-Of course you can call of this steps sequentially.
-
-```yaml
-args:
-- description: The Image you want to color code
-  identifier: representation
-  key: rep
-  label: null
-  transpile: null
-  typename: StructureArgPort
-  widget:
-	typename: SearchWidget
-	query:
-description: Uses the Time Lapse Color Code Plugin
-interface: color_code_image
-kwargs:
-- description: The Axis you want to color Code
-  key: axis
-  label: Axis
-  transpile: null
-  typename: StringKwargPort
-name: Stack Color Code
-package: test
-returns:
-- description: The color coded Image
-  identifier: representation
-  key: rep
-  label: null
-  transpile: null
-  typename: StructureReturnPort
-type: FUNCTION
-typename: Node
-```
-
-```groovy
-#@ String Glut (label="johannes", value="Nana")
-#@ Dataset[] listimages
-
+/*
+ * Time Lapse
+ * 
+ * A long an tiresome Module that
+ * does pretty much nothing
+ * 
+ * 
+ * @setactivein
+ * @takeactiveout
+ */
 
 var Glut = "Fire";	//default LUT
 var Gstartf = 1;
 var Gendf = 10;
 var GFrameColorScaleCheck = 1;
 var GbatchMode = 0;
+
 
 macro "Time-Lapse Color Coder" {
 Stack.getDimensions(ww, hh, channels, slices, frames);
@@ -159,9 +108,8 @@ selectImage(newimgID);
 close();
 
 selectImage(resultImageID);
+outimage = resultImageID;
 
 if (GbatchMode == 0)
 	setBatchMode("exit and display");
 }
-
-```
