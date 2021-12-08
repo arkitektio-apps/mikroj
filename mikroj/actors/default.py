@@ -1,12 +1,22 @@
 from threading import active_count
+from typing import List
+from arkitekt.schema.node import Node
 from mikroj.actors.base import FuncMacroActor
 from mikro import Representation
 import dask
+from mikroj.actors.define_macro import MacroDefinition
 
 from mikroj.registries.helper import BaseImageJHelper, get_running_helper
 
 
-def jtranspile(instance, helper: BaseImageJHelper):
+def jtranspile(
+    instance,
+    helper: BaseImageJHelper,
+    node: Node,
+    macrodef: MacroDefinition,
+    args: List,
+    kwargs: dict,
+):
     if isinstance(instance, Representation):
         x = helper.py.to_java(instance.data.squeeze().compute())
         print(x.__class__.__name__)
@@ -16,6 +26,8 @@ def jtranspile(instance, helper: BaseImageJHelper):
 
 
 def expand_xarray(xarray):
+    if "Channel" in xarray.dims:
+        xarray = xarray.rename({"Channel": "c"})
     if "z" not in xarray.dims:
         xarray = xarray.expand_dims("z")
     if "t" not in xarray.dims:
@@ -26,7 +38,14 @@ def expand_xarray(xarray):
     return xarray
 
 
-def ptranspile(instance, helper: BaseImageJHelper):
+def ptranspile(
+    instance,
+    helper: BaseImageJHelper,
+    node: Node,
+    macrodef: MacroDefinition,
+    args: List,
+    kwargs: dict,
+):
 
     if instance.__class__.__name__ == "net.imagej.DefaultDataset":
         xarray = helper.py.from_java(instance)
@@ -37,15 +56,27 @@ def ptranspile(instance, helper: BaseImageJHelper):
 
     if instance.__class__.__name__ == "ij.ImagePlus":
         xarray = helper.py.from_java(instance)
-        rep = Representation.objects.from_xarray(
-            expand_xarray(xarray), name="Created from"
-        )
+
+        if macrodef.filter:
+            origin: Representation = args[0]
+            rep = Representation.objects.from_xarray(
+                expand_xarray(xarray),
+                name=f"{node.name} of {origin.name}",
+                origin=origin,
+                tags=["filtered", "mikroj"],
+                meta={"mikroj:makro": node.interface},
+            )
+
+        else:
+            rep = Representation.objects.from_xarray(
+                expand_xarray(xarray), name="Undetermined through MikroJ"
+            )
         return rep
 
     return instance
 
 
-class ClassicMacroActor(FuncMacroActor):
+class DefaultMacroActor(FuncMacroActor):
     def assign(self, *args, **kwargs):
         """[summary]
 
@@ -67,11 +98,14 @@ class ClassicMacroActor(FuncMacroActor):
         helper = get_running_helper()
 
         imagej_args = {
-            port.key: jtranspile(arg, helper)
+            port.key: jtranspile(
+                arg, helper, self.template.node, definition, args, kwargs
+            )
             for arg, port in zip(args, self.template.node.args)
         }
         imagej_kwargs = {
-            key: jtranspile(kwarg, helper) for key, kwarg in kwargs.items()
+            key: jtranspile(kwarg, helper, self.template.node, definition, args, kwargs)
+            for key, kwarg in kwargs.items()
         }
 
         if definition.setactivein:
@@ -79,16 +113,15 @@ class ClassicMacroActor(FuncMacroActor):
             image = imagej_args.pop("image")
             helper.ij.ui().show(args[0].name, image)
 
-        print(definition)
-
-        print(imagej_args, imagej_kwargs)
-
+        print("Running Macro")
         value = helper.ij.py.run_macro(
             definition.macro, {**imagej_args, **imagej_kwargs}
         )
+        print("Macro Finished")
 
         returns = []
         if definition.takeactiveout:
+            print("Taking old Image out")
             returns.append(helper.py.active_image_plus())
 
         for index, re in enumerate(self.template.node.returns):
@@ -96,4 +129,14 @@ class ClassicMacroActor(FuncMacroActor):
                 continue  # we already put the image out
             returns.append(value.getOutput(re.key))
 
-        return tuple([ptranspile(value, helper) for value in returns])
+        print("Transpiling Inputs")
+        transpiled_returns = [
+            ptranspile(value, helper, self.template.node, definition, args, kwargs)
+            for value in returns
+        ]
+
+        if definition.donecloseactive:
+            print("Closing")
+            helper.ij.py.run_macro("close();", {})
+
+        return tuple(transpiled_returns)

@@ -7,6 +7,8 @@
  * 
  * @setactivein
  * @takeactiveout
+ * @donecloseactive
+ * @filter
  */
 
 var Glut = "Fire";	//default LUT
@@ -25,7 +27,6 @@ if ((slices > 1) && (frames == 1)) {
 	frames = slices;
 	slices = 1;
 	Stack.setDimensions(1, slices, frames);
-	print("slices and frames swapped");
 }
 Gendf = frames;
 if (Gstartf <1) Gstartf = 1;
@@ -102,14 +103,12 @@ run("Z Project...", op);
 if (slices > 1)
 	run("Stack to Hyperstack...", "order=xyczt(default) channels=1 slices=" + slices
 		+ " frames=1 display=Color");
+
 resultImageID = getImageID();
 
 selectImage(newimgID);
 close();
 
 selectImage(resultImageID);
-outimage = resultImageID;
+setBatchMode("exit and display");
 
-if (GbatchMode == 0)
-	setBatchMode("exit and display");
-}

@@ -13,7 +13,7 @@ from mikroj.registries.matcher import get_current_matcher
 doc = re.compile("\/\*(?P<name>(.|\n)*)\*\/*")
 
 documentation = re.compile(
-    "\/\*\W*(?P<name>[^\n]*)\n\W*(?P<doc>[^\/]*)\n*\*.*"
+    "\/\*\W*(?P<name>[^\n]*)\n\W*(?P<doc>[^\/\@]*)\n*\*.*"
 )  # matches the first line in a docstring
 
 in_re = re.compile("#@\W(?P<type>\w*)\W*(?P<key>\w*)")
@@ -22,6 +22,9 @@ return_re = re.compile("#@output\W(?P<type>\w*)\W*(?P<key>\w*)")
 is_interactive_re = re.compile(".*@interactive*")
 activein_re = re.compile(".*\@setactivein.*")
 activeout_re = re.compile(".*\@takeactiveout*")
+donecloseactive_re = re.compile(".*\@donecloseactive*")
+filter_re = re.compile(".*\@filter*")
+rgb_re = re.compile(".*\@rgb*")
 
 
 params_re = re.compile(r"#@[^\(]*\((?P<params>[^\)]*)\)")  # line has params
@@ -30,7 +33,9 @@ params_re = re.compile(r"#@[^\(]*\((?P<params>[^\)]*)\)")  # line has params
 class MacroDefinition(BaseModel):
     setactivein: bool = False  # mirorring CellProfiler approach
     takeactiveout: bool = False
-    is_interactive: bool = False
+    donecloseactive: bool = False
+    interactive: bool = False
+    filter: bool = False
     macro: str
 
 
@@ -48,9 +53,11 @@ def define_macro(file: str) -> Tuple[Node, MacroDefinition]:
 
     x = documentation.match(all)
 
-    macro_def.is_interactive = is_interactive_re.search(all) is not None
+    macro_def.interactive = is_interactive_re.search(all) is not None
     macro_def.setactivein = activein_re.search(all) is not None
     macro_def.takeactiveout = activeout_re.search(all) is not None
+    macro_def.donecloseactive = donecloseactive_re.search(all) is not None
+    macro_def.filter = filter_re.search(all) is not None
 
     print("noainasoisnaoin", activein_re.search(all))
     if x:
@@ -131,7 +138,12 @@ def define_macro(file: str) -> Tuple[Node, MacroDefinition]:
             ),
         )
 
-    print(macro_def, node_name)
+    if macro_def.filter:
+        assert (
+            isinstance(args[0], StructureArgPort)
+            and hasattr(args[0], "identifier")
+            and args[0].identifier == "representation"
+        ), "If Macro is a filter it should have as a first argument a Representation"
 
     return (
         Node(

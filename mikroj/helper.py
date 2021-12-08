@@ -10,23 +10,7 @@ class ImageJHelper(BaseImageJHelper):
     ) -> None:
         if bind:
             set_running_helper(self)
-        super().__init__(headless=headless, version=version, plugins=plugins)
 
-    def show_xarray(self, xarray: xr.DataArray):
-        if dask.is_dask_collection(xarray.data):
-            jimage = self.py.to_java(xarray.compute())
-        else:
-            jimage = self.py.to_java(xarray)
-
-        self.ui.show(xarray.name, jimage)
-
-    def displayRep(self, rep: Representation):
-        image = rep.data.squeeze()
-
-        if dask.is_dask_collection(image.data):
-            jimage = self.py.to_java(image.compute())
-        else:
-            jimage = self.py.to_java(image)
-
-        # Convert the Image to Image
-        self.ui.show(rep.name, jimage)
+        super().__init__(
+            headless=headless, version="/home/jhnnsrs/Fiji.app", plugins=plugins
+        )

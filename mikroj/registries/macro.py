@@ -4,7 +4,7 @@ import pydantic
 from arkitekt.schema.node import Node
 from mikroj.actors.base import FuncMacroActor
 from mikroj.actors.define_macro import MacroDefinition, define_macro
-from mikroj.actors.classic import ClassicMacroActor
+from mikroj.actors.default import DefaultMacroActor
 from mikroj.parsers.base import Parser
 from mikroj.parsers.definition.base import DefinitionParser
 from mikroj.parsers.code.base import CodeParser
@@ -53,7 +53,7 @@ class MacroRegistry:
             logger.debug(f"Found file {path}")
             node, definition = define_macro(path_in_str)
             self.registered_definitions[node.interface] = definition
-            actorBuilder = lambda: ClassicMacroActor()
+            actorBuilder = lambda: DefaultMacroActor()
 
             macro_list.append((node, actorBuilder))
 

@@ -1,7 +1,9 @@
 import imagej
 import scyjava
 import scyjava
-
+import xarray as xr
+import dask
+from mikro import Representation
 import os
 
 
@@ -17,6 +19,9 @@ class BaseImageJHelper:
 
         self.headless = headless
         print(f"Initializing with version {version}")
+        plugins_dir = "/home/jhnnsrs/Fiji.app/plugins"
+        scyjava.config.add_option(f"-Dplugins.dir={plugins_dir}")
+
         self._ij = imagej.init(version, headless=headless)
         if not headless:
             self._ij.ui().showUI()
@@ -33,6 +38,25 @@ class BaseImageJHelper:
     @property
     def ij(self):
         return self._ij
+
+    def show_xarray(self, xarray: xr.DataArray):
+        if dask.is_dask_collection(xarray.data):
+            jimage = self.py.to_java(xarray.compute())
+        else:
+            jimage = self.py.to_java(xarray)
+
+        self.ui.show(xarray.name, jimage)
+
+    def displayRep(self, rep: Representation):
+        image = rep.data.squeeze()
+
+        if dask.is_dask_collection(image.data):
+            jimage = self.py.to_java(image.compute())
+        else:
+            jimage = self.py.to_java(image)
+
+        # Convert the Image to Image
+        self.ui.show(rep.name, jimage)
 
 
 RUNNING_HELPER = None

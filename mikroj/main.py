@@ -38,17 +38,7 @@ if packaged:
     )
 
 
-class ImageJRunner(QObject):
-    init_signal = QtCore.pyqtSignal(str)
-
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.helper = None
-
-    def run_it(self):
-        # I'm guessing this is an infinite while loop that monitors files
-        self.helper = ImageJHelper()
-        self.init_signal.emit("yes")
+helper = ImageJHelper()
 
 
 class FormWrapped(QtWidgets.QWidget):
@@ -134,9 +124,7 @@ class MikroJ(QtWidgets.QMainWindow):
         # self.setWindowIcon(QtGui.QIcon(os.path.join(os.getcwd(), 'share\\assets\\icon.png')))
         self.setWindowIcon(QtGui.QIcon(get_asset_file("logo.ico")))
 
-        self.runner = ImageJRunner()
-
-        self.arkitektWidget = ArkitektWidget(self.runner.helper, **kwargs)
+        self.arkitektWidget = ArkitektWidget(helper, **kwargs)
 
         self.agent = self.arkitektWidget.agent
 
@@ -146,24 +134,13 @@ class MikroJ(QtWidgets.QMainWindow):
 
         self.showActor.signals.assign.wire(self.show_image_assign)
 
-        self.thread = QtCore.QThread(self)
-        self.runner.init_signal.connect(self.imagej_done)
         self.layout = QtWidgets.QHBoxLayout()
-        self.runner.moveToThread(self.thread)
-        self.thread.started.connect(self.runner.run_it)
-        self.thread.start()
-        self.arkitektWidget.magic_bar.magicb.setDisabled(True)
         self.setCentralWidget(self.arkitektWidget)
         self.init_ui()
 
     def show_image_assign(self, res, args, kwargs):
-        self.runner.helper.displayRep(args[0])
+        helper.displayRep(args[0])
         self.showActor.signals.assign.resolve(res, None)
-
-    def imagej_done(self, str):
-        # self.arkitektWidget.start_button.setDisabled(False)
-        # self.arkitektWidget.start_button.setText("Assign")
-        self.arkitektWidget.magic_bar.magicb.setDisabled(False)
 
     def init_ui(self):
         self.setWindowTitle("MikroJ")

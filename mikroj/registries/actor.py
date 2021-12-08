@@ -37,6 +37,6 @@ def get_current_macro_actor_registry(register_defaults=True) -> MacroActorRegist
     if MACRO_ACTOR_REGISTRY is None:
         MACRO_ACTOR_REGISTRY = MacroActorRegistry()
         if register_defaults:
-            from mikroj.actors.classic import StackToStackActor
+            from mikroj.actors.default import StackToStackActor
 
     return MACRO_ACTOR_REGISTRY
