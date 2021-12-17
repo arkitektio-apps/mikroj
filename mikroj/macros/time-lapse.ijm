@@ -1,8 +1,7 @@
 /*
- * Time Lapse
+ * Z Color Code
  * 
- * A long an tiresome Module that
- * does pretty much nothing
+ * Z Color Codes an Image
  * 
  * 
  * @setactivein

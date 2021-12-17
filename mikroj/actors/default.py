@@ -62,9 +62,10 @@ def ptranspile(
             rep = Representation.objects.from_xarray(
                 expand_xarray(xarray),
                 name=f"{node.name} of {origin.name}",
-                origin=origin,
+                origins=[origin],
                 tags=["filtered", "mikroj"],
                 meta={"mikroj:makro": node.interface},
+                sample=origin.sample,
             )
 
         else:
