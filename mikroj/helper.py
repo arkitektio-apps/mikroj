@@ -1,16 +1,37 @@
-from mikro.schema import Representation
-from mikroj.registries.helper import BaseImageJHelper, set_running_helper
-import dask
-import xarray as xr
+import imagej
+import scyjava
 
 
-class ImageJHelper(BaseImageJHelper):
+class ImageJ:
     def __init__(
-        self, headless=False, bind=True, version="sc.fiji:fiji", plugins=[]
+        self,
+        headless=False,
+        version="/home/jhnnsrs/Fiji.app",
+        plugins_dir="/home/jhnnsrs/Fiji.app/plugins",
     ) -> None:
-        if bind:
-            set_running_helper(self)
+        # concatenade version plus plugins
+        # build = [version] + plugins if len(plugins) > 0 else version
+        # if plugins_dir:
+        #   path = os.path.join(os.getcwd(),plugins_dir)
+        #    scyjava.config.add_option(f'-Dplugins.dir={path}')
 
-        super().__init__(
-            headless=headless, version="/home/jhnnsrs/Fiji.app", plugins=plugins
-        )
+        self.headless = headless
+        print(f"Initializing with version {version}")
+        scyjava.config.add_option(f"-Dplugins.dir={plugins_dir}")
+
+        self._ij = imagej.init(version, headless=headless)
+        if not headless:
+            self._ij.ui().showUI()
+        super().__init__()
+
+    @property
+    def py(self):
+        return self._ij.py
+
+    @property
+    def ui(self):
+        return self._ij.ui()
+
+    @property
+    def ij(self):
+        return self._ij

@@ -1,33 +1,21 @@
-from abc import abstractmethod
 import abc
+import os
 import sys
-from PyQt5 import QtGui, QtWidgets
-from PyQt5 import QtCore
-from PyQt5.QtCore import QObject, QRect, Qt, pyqtSignal
-import os
-from pydantic.class_validators import extract_root_validators
-from arkitekt.actors.registry import register
-from arkitekt.qt.utils import register_ui
-from herre.qt import QtHerre
-from pydantic.main import BaseModel
-from arkitekt.messages.base import T
-from fakts.grants.qt.qtbeacon import QtSelectableBeaconGrant
-from fakts.grants.qt.qtyamlgrant import QtYamlGrant
-from fakts.grants.yaml import YamlGrant
-from fakts.qt import QtFakts
-from mikro import Representation
-from mikroj.agent import MikroJAgent
+from arkitekt.agents.base import BaseAgent
+from arkitekt.compositions.base import Arkitekt
+from arkitekt.messages import Provision
+from arkitekt.qt.magic_bar import MagicBar
+from fakts.fakts import Fakts
+from fakts.grants.qt.qtbeacon import QtSelectableBeaconGrant, SelectBeaconWidget
+from herre.fakts.herre import FaktsHerre
+from koil.composition.qt import QtPedanticKoil
+from mikro.api.schema import RepresentationFragment
+from mikro.arkitekt import ConnectedApp
+from PyQt5 import QtCore, QtGui, QtWidgets
+
 from mikroj.env import MACROS_PATH, PLUGIN_PATH, get_asset_file
-from mikroj.helper import ImageJHelper
-from arkitekt.qt.agent import QtAgent
-from mikro.widgets import MY_TOP_REPRESENTATIONS
-from arkitekt.qt.widgets.provisions import ProvisionsWidget
-from arkitekt.qt.widgets.templates import TemplatesWidget
-from arkitekt.qt.widgets.magic_bar import MagicBar
-import os
-
-from mikroj.structures.imageplus import ImagePlus
-
+from mikroj.helper import ImageJ
+from mikroj.registries.macro import MacroRegistry
 
 packaged = False
 
@@ -38,119 +26,72 @@ if packaged:
     )
 
 
-helper = ImageJHelper()
-
-
-class FormWrapped(QtWidgets.QWidget):
-    def __init__(self, widget, title, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.layout = QtWidgets.QHBoxLayout()
-        self.formGroupBox = QtWidgets.QGroupBox(title)
-        qlayout = QtWidgets.QFormLayout()
-        qlayout.addRow(widget)
-        self.formGroupBox.setLayout(qlayout)
-        self.layout.addWidget(self.formGroupBox)
-        self.setLayout(self.layout)
-
-
-class ArkitektWidget(QtWidgets.QWidget):
-    def __init__(self, helper, *args, config_path=None, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-
-        # Different Grants
-
-        self.beacon_grant = QtSelectableBeaconGrant()
-        self.fakts = QtFakts(
-            grants=[self.beacon_grant],
-            subapp="mikroj",
-            hard_fakts={
-                "herre": {
-                    "client_id": "hmtwKgUO092bYBOvHngL5HVikS2q5aWbS7V1ofdU",
-                    "scopes": ["introspection", "can_provide"],
-                }
-            },
-        )
-        self.herre = QtHerre()
-        self.agent = MikroJAgent(helper, self)
-
-        self.magic_bar = MagicBar(self.fakts, self.herre, self.agent)
-        self.agent.load_macros(MACROS_PATH)
-
-        self.layout = QtWidgets.QVBoxLayout()
-
-        self.provisions_widget = FormWrapped(ProvisionsWidget(self.agent), "Provisions")
-        self.templates_widget = FormWrapped(TemplatesWidget(self.agent), "Templates")
-
-        self.layout.addWidget(self.magic_bar)
-        self.layout.addWidget(self.provisions_widget)
-        self.layout.addWidget(self.templates_widget)
-        self.setLayout(self.layout)
-
-
-def show_image(rep: Representation):
-    """Shows an Image
-
-    Shows a Representation on Imagej
-
-    Args:
-        rep (Representation): A Beautiful Little Image to display
-    """
-
-
-@register(interfaces=["bridge"])
-def bridge(rep: Representation) -> ImagePlus:
-    """Bridges a thing to a thang
-
-    Bridges an Representation to an In memory Fiji Image
-
-    Args:
-        rep (Representation): [description]
-
-    Returns:
-        ImagePlus: [description]
-    """
-    print(rep)
-    array = rep.data.compute()
-    print(array)
-
-    plus = ImagePlus(array)
-    print(plus)
-    return plus
-
-
 class MikroJ(QtWidgets.QMainWindow):
-    def __init__(self, **kwargs):
-        super().__init__()
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
         # self.setWindowIcon(QtGui.QIcon(os.path.join(os.getcwd(), 'share\\assets\\icon.png')))
         self.setWindowIcon(QtGui.QIcon(get_asset_file("logo.ico")))
+        self.setWindowTitle("MikroJ")
 
-        self.arkitektWidget = ArkitektWidget(helper, **kwargs)
+        self.image_j = ImageJ()
 
-        self.agent = self.arkitektWidget.agent
+        self.macro_registry = MacroRegistry(path=MACROS_PATH)
 
-        self.showActor = self.agent.register_ui(
-            show_image, widgets={"rep": MY_TOP_REPRESENTATIONS}
+        self.app = ConnectedApp(
+            koil=QtPedanticKoil(uvify=False, auto_connect=True, parent=self),
+            fakts=Fakts(
+                subapp="mikroj",
+                grants=[
+                    QtSelectableBeaconGrant(widget=SelectBeaconWidget(parent=self))
+                ],
+                assert_groups={"mikro"},
+            ),
+            arkitekt=Arkitekt(definition_registry=self.macro_registry),
+            herre=FaktsHerre(login_on_enter=False),
         )
 
-        self.showActor.signals.assign.wire(self.show_image_assign)
+        self.app.arkitekt.agent.hook("before_spawn")(self.before_spawn)
 
-        self.layout = QtWidgets.QHBoxLayout()
-        self.setCentralWidget(self.arkitektWidget)
-        self.init_ui()
+        self.app.arkitekt.register()(self.show_image)
 
-    def show_image_assign(self, res, args, kwargs):
-        helper.displayRep(args[0])
-        self.showActor.signals.assign.resolve(res, None)
+        self.app.koil.connect()
 
-    def init_ui(self):
-        self.setWindowTitle("MikroJ")
-        self.show()
+        hard_fakts = {
+            "herre": {
+                "client_id": "hmtwKgUO092bYBOvHngL5HVikS2q5aWbS7V1ofdU",
+                "scopes": ["introspection", "can_provide"],
+            }
+        }
+
+        self.magic_bar = MagicBar(self.app, dark_mode=False)
+
+        self.setCentralWidget(self.magic_bar)
+
+        self.macro_registry.load_macros()
+
+    async def before_spawn(self, agent: BaseAgent, provision: Provision):
+        print("Provision")
+
+    def show_image(self, image: RepresentationFragment):
+        """Show Image
+
+        Shows the image in the viewer
+
+        Args:
+            image (RepresentationFragment): _description_
+        """
+        pass
+
+    def register_macros(self):
+        print("Registering Macros")
 
 
 def main(**kwargs):
     app = QtWidgets.QApplication(sys.argv)
     # app.setWindowIcon(QtGui.QIcon(os.path.join(os.getcwd(), 'share\\assets\\icon.png')))
     main_window = MikroJ(**kwargs)
+    main_window.show()
     sys.exit(app.exec_())
 
 
