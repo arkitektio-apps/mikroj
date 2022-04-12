@@ -1,0 +1,35 @@
+{
+  "items": [
+    {
+      "items": [
+        "reference/__init__/__init__"
+      ],
+      "label": "__init__",
+      "type": "category"
+    },
+    {
+      "items": [
+        "reference/actors/__init__",
+        "reference/actors/base",
+        "reference/actors/define_macro"
+      ],
+      "label": "actors",
+      "type": "category"
+    },
+    {
+      "items": [
+        "reference/registries/__init__",
+        "reference/registries/base",
+        "reference/registries/macro",
+        "reference/registries/utils"
+      ],
+      "label": "registries",
+      "type": "category"
+    },
+    "reference/env",
+    "reference/helper",
+    "reference/main"
+  ],
+  "label": "Reference",
+  "type": "category"
+}
