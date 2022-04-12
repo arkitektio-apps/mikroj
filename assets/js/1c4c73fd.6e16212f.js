@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkwebsite=self.webpackChunkwebsite||[]).push([[796],{6734:function(a){a.exports=JSON.parse('{"rath":{"allTagsPath":"/mikroj/blog/tags","name":"rath","count":1,"permalink":"/mikroj/blog/tags/rath"}}')}}]);
