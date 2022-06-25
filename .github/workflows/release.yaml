@@ -26,7 +26,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
   build:
     name: Build packages
-    needs: createrelease
+    needs: release
     strategy:
       matrix:
         include:
