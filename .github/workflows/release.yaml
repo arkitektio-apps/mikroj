@@ -24,8 +24,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: MikroJ ${{ github.ref }} ${{ matrix.TARGET}}
+          tag_name: ${{ github.run_id }}
+          release_name: MikroJ ${{ github.run_id }} ${{ matrix.TARGET}}
           draft: false
           prerelease: false
       - uses: actions/checkout@v2
