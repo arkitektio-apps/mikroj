@@ -19,7 +19,8 @@ jobs:
         with:
           draft: false
           prerelease: false
-          release_name: MikroJ 0.2
+          release_name: MikroJ 0.1
+          tag_name: 2
           body_path: CHANGELOG.md
         env:
           GITHUB_TOKEN: ${{ github.token }}
