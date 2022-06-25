@@ -1,0 +1,29 @@
+fragment MultiScaleRepresentation on Representation {
+  derived(tags: ["multiscale"]) {
+    name
+    tags
+    meta
+    store
+  }
+}
+
+fragment Representation on Representation {
+  sample {
+    id
+    name
+  }
+  type
+  id
+  store
+  variety
+  name
+}
+
+fragment ListRepresentation on Representation {
+  id
+  name
+  sample {
+    id
+    name
+  }
+}

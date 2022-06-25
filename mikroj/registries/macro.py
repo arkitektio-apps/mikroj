@@ -1,128 +1,64 @@
-from typing import Optional, Union
-
-import pydantic
-from arkitekt.schema.node import Node
-from mikroj.parsers.base import Parser
-from mikroj.parsers.definition.base import DefinitionParser
-from mikroj.parsers.code.base import CodeParser
-import pathlib
-from functools import reduce
-from mikroj.parsers.meta import MDMeta, parse_md_meta
-from mikroj.registries.actor import get_current_macro_actor_registry
-from pydantic import BaseModel
 import logging
 import os
+import pathlib
+from typing import Any, Optional, Union
+from arkitekt.actors.builder import ActorBuilder
 
+from arkitekt.definition.registry import DefinitionRegistry
+from arkitekt.qt.builders import QtInLoopBuilder
+from mikroj.actors.base import FuncMacroActor
+from pydantic import BaseModel, Field, validator
+from mikroj.macro_helper import ImageJMacroHelper
+from mikroj.registries.base import Macro
+
+from mikroj.registries.utils import load_macro, define_macro
 
 logger = logging.getLogger(__name__)
 
-    
-class QueryNodeDefinition(BaseModel):
-    package: Optional[str]
-    interface: Optional[str]
-    q: Optional[str]
+
+class MacroBuilder(ActorBuilder):
+    """MacroBuilder
+
+    MacroBuilder is a builder for FuncMacroActor.
+    """
+
+    def __init__(self, macro: Macro, helper: ImageJMacroHelper):
+        self.macro = macro
+        self.helper = helper
+
+    def __call__(self, *args, **kwargs):
+        return FuncMacroActor(
+            macro=self.macro,
+            helper=self.helper,
+            expand_inputs=True,
+            shrink_outputs=True,
+            *args,
+            **kwargs,
+        )
 
 
-class MacroRegistry:
+class MacroRegistry(DefinitionRegistry):
+    path: str = "mikroj/macros"
+    helper: ImageJMacroHelper = Field(default_factory=ImageJMacroHelper)
 
-    def __init__(self) -> None:
-        self.registered_macros = {}
-        self.registered_definition_parser = {}
-        self.registered_code_parser = {}
+    @validator("path")
+    def path_validator(cls, v):
+        if not os.path.exists(v):
+            raise ValueError(f"Path {v} does not exist")
+        return v
 
-
-    def register_definition_parser(self, className, parser):
-        self.registered_definition_parser[className] = parser
-
-    def register_code_parser(self, className, parser):
-        self.registered_code_parser[className] = parser
-
-
-    def scan_folder(self, folder_path = "macros"):
-        assert os.path.exists(folder_path), f"Folder {folder_path} does not exist"
-
-        pathlist = pathlib.Path(folder_path).rglob('*.md')
+    def load_macros(self):
+        print(self.path)
+        pathlist = pathlib.Path(self.path).rglob("*.ijm")
         macro_list = []
         for path in pathlist:
+            print(path)
             # because path is object not string
             path_in_str = str(path)
-            logger.debug(f"Found file {path}")
-            with open(path_in_str) as f:
-                try: 
-                    stream = f.read()
+            macro = load_macro(path_in_str)
 
-                    meta = parse_md_meta(stream)
-                
+            definition = define_macro(macro)
 
-                    definition_parsers = [self.registered_definition_parser[parser] for parser in meta.get_definition_parsers()]
-                    code_parsers = [self.registered_code_parser[parser] for parser in meta.get_code_parsers()]
+            actorBuilder = MacroBuilder(macro, self.helper)
 
-                    definitions = [parser(stream=stream).get_definition() for parser in definition_parsers]
-                    codes = [parser(stream=stream).get_code() for parser in code_parsers]
-
-                    combined_definition = reduce(lambda x, y: {**x, **y} if x else y, definitions, {})
-
-                
-                    if "template" in combined_definition and combined_definition["template"] == "yes":
-                        definition = QueryNodeDefinition(**combined_definition)
-                    else:
-                        definition = Node(**combined_definition)
-
-                    actor = get_current_macro_actor_registry().get_actor(meta.actor)(macro=codes[0])
-                    macro_list.append((definition, actor))
-
-                except pydantic.error_wrappers.ValidationError as e:
-                    logger.exception(e)
-                    logger.error(f"Omiting file {path}")
-                    continue
-                
-            
-        return macro_list
-
-
-
-
-
-
-
-
-
-
-def register_definition_parser(className: str):
-
-    def rea_decorator(parser):
-        assert issubclass(parser, Parser), "Parser must subclass Parser"
-        logger.info(f"Registering Definition Parser {parser} for {className}")
-        get_current_macro_registry().register_definition_parser(className, parser)
-        return parser
-
-    return rea_decorator
-
-def register_code_parser(className: str):
-
-    def rea_decorator(parser):
-        assert issubclass(parser, Parser), "Parser must subclass Parser"
-        logger.info(f"Registering Code parser {parser} for {className}")
-        get_current_macro_registry().register_code_parser(className, parser)
-        return parser
-
-    return rea_decorator
-
-
-
-
-
-MACRO_REGISTRY = None
-
-def get_current_macro_registry(register_defaults= True) -> MacroRegistry:
-    global MACRO_REGISTRY
-    if MACRO_REGISTRY is None:
-        MACRO_REGISTRY = MacroRegistry()
-        if register_defaults:
-            from mikroj.parsers.code.groovy import GroovyParser
-            from mikroj.parsers.definition.meta import MetaParser
-            from mikroj.parsers.definition.yaml import YamlParser
-
-    return MACRO_REGISTRY
-
-
+            self.register_actor_with_defintion(actorBuilder, definition)

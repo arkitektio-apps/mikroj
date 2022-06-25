@@ -1,28 +1,30 @@
-from abc import abstractmethod
 import abc
+import os
 import sys
-from PyQt5 import QtGui, QtWidgets
-from PyQt5 import QtCore
-from PyQt5.QtCore import QObject, QRect, Qt, pyqtSignal
-import os
-from pydantic.class_validators import extract_root_validators
-from herre.qt import QtHerre
-from pydantic.main import BaseModel
-from arkitekt.messages.base import T
-from fakts.grants.qt.qtbeacon import QtSelectableBeaconGrant
-from fakts.grants.qt.qtyamlgrant import QtYamlGrant
-from fakts.grants.yaml import YamlGrant
-from fakts.qt import QtFakts
-from mikro import Representation
-from mikroj.agent import MikroJAgent
-from mikroj.env import PLUGIN_PATH, get_asset_file
-from mikroj.helper import ImageJHelper
-from arkitekt.qt.agent import QtAgent
-from mikro.widgets import MY_TOP_REPRESENTATIONS
-from arkitekt.qt.widgets.provisions import ProvisionsWidget
-from arkitekt.qt.widgets.templates import TemplatesWidget
-from arkitekt.qt.widgets.magic_bar import MagicBar
-import os
+from arkitekt.agents.base import BaseAgent
+from arkitekt.compositions.base import Arkitekt
+from arkitekt.messages import Provision
+from arkitekt.qt.magic_bar import MagicBar
+from fakts.discovery.static import StaticDiscovery
+from fakts.fakts import Fakts
+from fakts.grants.meta.failsafe import FailsafeGrant
+from fakts.grants.remote.claim import ClaimGrant
+from fakts.grants.remote.public_redirect_grant import PublicRedirectGrant
+from herre.fakts.herre import FaktsHerre
+from koil.composition.qt import QtPedanticKoil
+from mikro.api.schema import RepresentationFragment
+from mikro.arkitekt import ConnectedApp
+from PyQt5 import QtCore, QtGui, QtWidgets
+from fakts.grants.remote.redirect_grant import RedirectGrant
+from mikroj.env import MACROS_PATH, PLUGIN_PATH, get_asset_file
+from mikroj.helper import ImageJ
+from mikroj.registries.macro import ImageJMacroHelper, MacroRegistry
+import imagej
+import scyjava
+from PyQt5 import QtCore, QtGui, QtWidgets
+
+from mikroj.registries.macro import ImageJMacroHelper
+from .errors import NotStartedError
 
 
 packaged = False
@@ -34,131 +36,110 @@ if packaged:
     )
 
 
-class ImageJRunner(QObject):
-    init_signal = QtCore.pyqtSignal(str)
-
+class MikroJ(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.helper = None
 
-    def run_it(self):
-        # I'm guessing this is an infinite while loop that monitors files
-        self.helper = ImageJHelper()
-        self.init_signal.emit("yes")
-
-
-class FormWrapped(QtWidgets.QWidget):
-    def __init__(self, widget, title, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.layout = QtWidgets.QHBoxLayout()
-        self.formGroupBox = QtWidgets.QGroupBox(title)
-        qlayout = QtWidgets.QFormLayout()
-        qlayout.addRow(widget)
-        self.formGroupBox.setLayout(qlayout)
-        self.layout.addWidget(self.formGroupBox)
-        self.setLayout(self.layout)
-
-
-class ArkitektWidget(QtWidgets.QWidget):
-    def __init__(self, helper, *args, config_path=None, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-
-        # Different Grants
-
-        self.beacon_grant = QtSelectableBeaconGrant()
-        self.fakts = QtFakts(
-            grants=[self.beacon_grant],
-            subapp="mikroj",
-            hard_fakts={
-                "herre": {
-                    "client_id": "hmtwKgUO092bYBOvHngL5HVikS2q5aWbS7V1ofdU",
-                    "scopes": ["introspection", "can_provide"],
-                }
-            },
-        )
-        self.herre = QtHerre()
-        self.agent = MikroJAgent(helper, self)
-
-        self.magic_bar = MagicBar(self.fakts, self.herre, self.agent)
-        self.agent.load_macros(PLUGIN_PATH)
-
-        self.layout = QtWidgets.QVBoxLayout()
-
-        self.provisions_widget = FormWrapped(ProvisionsWidget(self.agent), "Provisions")
-        self.templates_widget = FormWrapped(TemplatesWidget(self.agent), "Templates")
-
-        self.layout.addWidget(self.magic_bar)
-        self.layout.addWidget(self.provisions_widget)
-        self.layout.addWidget(self.templates_widget)
-        self.setLayout(self.layout)
-
-
-def show_image(rep: Representation):
-    """Shows an Image
-
-    Shows a Representation on Imagej
-
-    Args:
-        rep (Representation): A Beautiful Little Image to display
-    """
-
-
-class MikroJ(QtWidgets.QMainWindow):
-    def __init__(self, **kwargs):
-        super().__init__()
         # self.setWindowIcon(QtGui.QIcon(os.path.join(os.getcwd(), 'share\\assets\\icon.png')))
         self.setWindowIcon(QtGui.QIcon(get_asset_file("logo.ico")))
+        self.setWindowTitle("MikroJ")
 
-        self.runner = ImageJRunner()
-        self.arkitektWidget = ArkitektWidget(self.runner.helper, **kwargs)
+        self.settings = QtCore.QSettings("MikroJ", "App1")
+        self.image_j_path = self.settings.value("image_j_path", "")
+        self.auto_initialize = self.settings.value("auto_initialize", True)
+        self.plugins_dir = self.settings.value("plugins_dir", "")
 
-        self.agent = self.arkitektWidget.agent
+        self.macro_registry = MacroRegistry(path=MACROS_PATH)
 
-        self.showActor = self.agent.register_side(
-            self.show_image, widgets={"rep": MY_TOP_REPRESENTATIONS}
+        self.app = ConnectedApp(
+            koil=QtPedanticKoil(uvify=False, parent=self),
+            fakts=Fakts(
+                subapp="mikroj",
+                grant=FailsafeGrant(
+                    grants=[
+                        ClaimGrant(
+                            client_id="DSNwVKbSmvKuIUln36FmpWNVE2KrbS2oRX0ke8PJ",
+                            client_secret="Gp3VldiWUmHgKkIxZjL2aEjVmNwnSyIGHWbQJo6bWMDoIUlBqvUyoGWUWAe6jI3KRXDOsD13gkYVCZR0po1BLFO9QT4lktKODHDs0GyyJEzmIjkpEOItfdCC4zIa3Qzu",
+                            discovery=StaticDiscovery(
+                                base_url="http://localhost:8019/f/"
+                            ),
+                            graph="localhost",
+                        ),
+                        PublicRedirectGrant(name="MikroJ", scopes=["openid"]),
+                    ],
+                ),
+                assert_groups={"mikro"},
+            ),
+            arkitekt=Arkitekt(definition_registry=self.macro_registry),
         )
 
-        #self.showActor.signals.assign.wire(self.show_image_assign)
+        self.app.arkitekt.agent.hook("before_spawn")(self.before_spawn)
 
-        self.thread = QtCore.QThread(self)
-        self.runner.init_signal.connect(self.imagej_done)
-        self.layout = QtWidgets.QHBoxLayout()
-        self.runner.moveToThread(self.thread)
-        self.thread.started.connect(self.runner.run_it)
-        self.thread.start()
-        self.arkitektWidget.magic_bar.magicb.setDisabled(True)
-        self.setCentralWidget(self.arkitektWidget)
-        self.init_ui()
+        self.app.enter()
 
-    def show_image(self, rep: Representation):
-        """Shows an Image
+        self.magic_bar = MagicBar(self.app, dark_mode=False)
 
-        Shows a Representation on Imagej
+        self.macro_registry.load_macros()
 
-        Args:
-            rep (Representation): A Beautiful Little Image to display
-        """
-        self.runner.helper.displayRep(rep)
+        self.headless = False
+        self._ij = None
 
+        self.imagej_button = QtWidgets.QPushButton("Initialize ImageJ")
+        self.settings_button = QtWidgets.QPushButton("Settings")
+        self.imagej_button.clicked.connect(self.initialize)
+        self.settings_button.clicked.connect(self.open_settings)
 
-    def show_image_assign(self, res, args, kwargs):
-        self.runner.helper.displayRep(args[0])
-        self.showActor.signals.assign.resolve(res, None)
+        self.layout = QtWidgets.QVBoxLayout()
+        self.layout.addWidget(self.imagej_button)
+        self.layout.addWidget(self.settings_button)
+        self.layout.addWidget(self.magic_bar)
 
-    def imagej_done(self, str):
-        # self.arkitektWidget.start_button.setDisabled(False)
-        # self.arkitektWidget.start_button.setText("Assign")
-        self.arkitektWidget.magic_bar.magicb.setDisabled(False)
+        self.setLayout(self.layout)
+        if self.image_j_path and self.auto_initialize:
+            self.initialize()
 
-    def init_ui(self):
-        self.setWindowTitle("MikroJ")
-        self.show()
+    async def before_spawn(self, agent: BaseAgent, provision: Provision):
+        print("Provision")
+
+    def request_imagej_dir(self):
+        dir = QtWidgets.QFileDialog.getExistingDirectory(
+            parent=self, caption="Select ImageJ directory"
+        )
+        if dir:
+            self.image_j_path = dir
+            self.settings.setValue("image_j_path", dir)
+        else:
+            self.image_j_path = ""
+            self.settings.setValue("image_j_path", "")
+
+    def open_settings(self):
+        pass
+
+    def initialize(self):
+        if not self.image_j_path:
+            self.magic_bar.magicb.setDisabled(True)
+            self.request_imagej_dir()
+
+        if self.plugins_dir:
+            print(f"Initializing with plugins in  {self.plugins_dir}")
+            scyjava.config.add_option(f"-Dplugins.dir={self.plugins_dir}")
+
+        self.imagej_button.setDisabled(True)
+        self.imagej_button.setDisabled(True)
+        self.imagej_button.setText("Initializing...")
+        self._ij = imagej.init(self.image_j_path, headless=self.headless)
+        self.magic_bar.magicb.setDisabled(False)
+        self.macro_registry.helper.set_ij_instance(self._ij)
+
+        if not self.headless:
+            self._ij.ui().showUI()
 
 
 def main(**kwargs):
     app = QtWidgets.QApplication(sys.argv)
     # app.setWindowIcon(QtGui.QIcon(os.path.join(os.getcwd(), 'share\\assets\\icon.png')))
     main_window = MikroJ(**kwargs)
+    main_window.show()
     sys.exit(app.exec_())
 
 

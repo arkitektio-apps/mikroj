@@ -1,33 +1,24 @@
-from qtpy import QtWidgets
-# generate a simple pyqt application with a window showing a button
-# and a text field. The button will call a function that will
+import sys
 
-class MyWindow(QtWidgets.QWidget):
+from PyQt5.QtCore import QSize, Qt
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton
+
+
+# Subclass QMainWindow to customize your application's main window
+class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.init_ui()
 
-    def init_ui(self):
-        self.setWindowTitle('MyWindow')
-        self.resize(300, 200)
-        self.button = QtWidgets.QPushButton('Click Me')
-        self.button.clicked.connect(self.button_clicked)
-        self.text = QtWidgets.QLineEdit()
-        layout = QtWidgets.QVBoxLayout()
-        layout.addWidget(self.button)
-        layout.addWidget(self.text)
-        self.setLayout(layout)
+        self.setWindowTitle("My App")
+        button = QPushButton("Press Me!")
 
-# Show a di
+        # Set the central widget of the Window.
+        self.setCentralWidget(button)
 
 
+app = QApplication(sys.argv)
 
-def main():
-    app = QtWidgets.QApplication([])
-    window = MyWindow()
-    window.show()
-    app.exec_()
+window = MainWindow()
+window.show()
 
-
-if __name__ == '__main__':
-    main()
+app.exec()

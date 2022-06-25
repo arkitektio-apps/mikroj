@@ -1,0 +1,29 @@
+fragment MultiScaleSample on Sample {
+  id
+  name
+  representations(tags: ["multiscale"]) {
+    id
+    store
+    derived(ordering: "-meta_multiscale_depth") {
+      store
+    }
+  }
+}
+
+mutation create_image($xarray: XArray!) {
+  image1: fromXArray(xarray: $xarray) {
+    id
+    name
+    derived {
+      id
+    }
+  }
+
+  image2: fromXArray(xarray: $xarray) {
+    id
+    name
+    derived {
+      id
+    }
+  }
+}

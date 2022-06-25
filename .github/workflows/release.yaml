@@ -1,0 +1,52 @@
+name: Publish
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  build:
+    name: Build packages
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            TARGET: windows
+            CMD_BUILD: python build-windows.py
+            OUT_FILE_NAME: KARL/KARL.exe
+            ASSET_NAME: "Karl.exe"
+            ASSET_MIME: application/vnd.microsoft.portable-executable
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.run_id }}
+          release_name: MikroJ ${{ github.run_id }} ${{ matrix.TARGET}}
+          draft: false
+          prerelease: false
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - name: Run image
+        uses: abatilo/actions-poetry@v2.0.0
+        with:
+          poetry-version: 1.1.4
+      - name: Run Poetry Install
+        run: poetry config virtualenvs.create false && poetry install
+      - name: Build with pyinstaller for ${{matrix.TARGET}}
+        run: ${{matrix.CMD_BUILD}}
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./build/${{ matrix.OUT_FILE_NAME}}
+          asset_name: ${{ matrix.ASSET_NAME}}
+          asset_content_type: ${{ matrix.ASSET_MIME}}
