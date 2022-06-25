@@ -114,11 +114,11 @@ class MikroJ(QtWidgets.QMainWindow):
 
         self.agent = self.arkitektWidget.agent
 
-        self.showActor = self.agent.register_ui(
-            show_image, widgets={"rep": MY_TOP_REPRESENTATIONS}
+        self.showActor = self.agent.register_side(
+            self.show_image, widgets={"rep": MY_TOP_REPRESENTATIONS}
         )
 
-        self.showActor.signals.assign.wire(self.show_image_assign)
+        #self.showActor.signals.assign.wire(self.show_image_assign)
 
         self.thread = QtCore.QThread(self)
         self.runner.init_signal.connect(self.imagej_done)
@@ -129,6 +129,17 @@ class MikroJ(QtWidgets.QMainWindow):
         self.arkitektWidget.magic_bar.magicb.setDisabled(True)
         self.setCentralWidget(self.arkitektWidget)
         self.init_ui()
+
+    def show_image(self, rep: Representation):
+        """Shows an Image
+
+        Shows a Representation on Imagej
+
+        Args:
+            rep (Representation): A Beautiful Little Image to display
+        """
+        self.runner.helper.displayRep(rep)
+
 
     def show_image_assign(self, res, args, kwargs):
         self.runner.helper.displayRep(args[0])
