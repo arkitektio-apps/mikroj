@@ -30,11 +30,6 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: macos-latest
-            TARGET: macos
-            CMD_BUILD: python build-mac.py
-            OUT_FILE_NAME: KARL.zip
-            ASSET_MIME: application/zip
           - os: windows-latest
             TARGET: windows
             CMD_BUILD: python build-windows.py
