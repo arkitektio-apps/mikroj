@@ -1,25 +1,45 @@
 import logging
 import os
 import pathlib
-from typing import Optional, Union
+from typing import Any, Optional, Union
+from arkitekt.actors.builder import ActorBuilder
 
 from arkitekt.definition.registry import DefinitionRegistry
+from arkitekt.qt.builders import QtInLoopBuilder
 from mikroj.actors.base import FuncMacroActor
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, Field, validator
+from mikroj.macro_helper import ImageJMacroHelper
+from mikroj.registries.base import Macro
 
 from mikroj.registries.utils import load_macro, define_macro
 
 logger = logging.getLogger(__name__)
 
 
-class QueryNodeDefinition(BaseModel):
-    package: Optional[str]
-    interface: Optional[str]
-    q: Optional[str]
+class MacroBuilder(ActorBuilder):
+    """MacroBuilder
+
+    MacroBuilder is a builder for FuncMacroActor.
+    """
+
+    def __init__(self, macro: Macro, helper: ImageJMacroHelper):
+        self.macro = macro
+        self.helper = helper
+
+    def __call__(self, *args, **kwargs):
+        return FuncMacroActor(
+            macro=self.macro,
+            helper=self.helper,
+            expand_inputs=True,
+            shrink_outputs=True,
+            *args,
+            **kwargs,
+        )
 
 
 class MacroRegistry(DefinitionRegistry):
     path: str = "mikroj/macros"
+    helper: ImageJMacroHelper = Field(default_factory=ImageJMacroHelper)
 
     @validator("path")
     def path_validator(cls, v):
@@ -38,12 +58,7 @@ class MacroRegistry(DefinitionRegistry):
             macro = load_macro(path_in_str)
 
             definition = define_macro(macro)
-            actorBuilder = lambda provision, transport: FuncMacroActor(
-                provision=provision,
-                transport=transport,
-                macro=macro,
-                expand_inputs=True,
-                shrink_outputs=True,
-            )
+
+            actorBuilder = MacroBuilder(macro, self.helper)
 
             self.register_actor_with_defintion(actorBuilder, definition)
