@@ -7,7 +7,6 @@ on:
 jobs:
   build:
     name: Build packages
-    needs: release
     strategy:
       matrix:
         include:
