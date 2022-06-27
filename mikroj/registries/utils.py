@@ -3,7 +3,13 @@ import pathlib
 import re
 
 from matplotlib import is_interactive
-from arkitekt.api.schema import ArgPortInput, DefinitionInput, NodeType, ReturnPortInput
+from arkitekt.api.schema import (
+    ArgPortInput,
+    DefinitionInput,
+    NodeType,
+    ReturnPortInput,
+    PortTypeInput,
+)
 from pydantic.main import BaseModel
 from mikro.widgets import MY_TOP_REPRESENTATIONS
 from mikroj.registries.base import Macro
@@ -60,7 +66,7 @@ def define_macro(macro: Macro) -> DefinitionInput:
     if macro.setactivein:
         args += [
             ArgPortInput(
-                typename="StructureArgPort",
+                type=PortTypeInput.STRUCTURE,
                 key="image",
                 identifier="@mikro/representation",
                 description="Image to be processed",
@@ -71,7 +77,7 @@ def define_macro(macro: Macro) -> DefinitionInput:
     if macro.takeactiveout:
         returns += [
             ReturnPortInput(
-                typename="StructureReturnPort",
+                type=PortTypeInput.STRUCTURE,
                 key="image",
                 identifier="@mikro/representation",
                 description="Image to be processed",
