@@ -2,13 +2,12 @@ from typing import Union
 import pathlib
 import re
 
-from matplotlib import is_interactive
-from arkitekt.api.schema import (
+from rekuest.api.schema import (
     ArgPortInput,
     DefinitionInput,
-    NodeType,
+    NodeKind,
+    PortKindInput,
     ReturnPortInput,
-    PortTypeInput,
 )
 from pydantic.main import BaseModel
 from mikro.widgets import MY_TOP_REPRESENTATIONS
@@ -39,11 +38,17 @@ def load_macro(path: Union[str, pathlib.Path]) -> Macro:
     with open(path, "r") as f:
         code = f.read()
 
+    interfaces = interfaces_re.findall(code) or []
     d = documentation.match(code)
     setactivein = bool(activein_re.search(code))
     activeout = bool(activeout_re.search(code))
+    filter = bool(filter_re.search(code))
+    rgb = bool(rgb_re.search(code))
+    if filter:
+        interfaces.append("filter")
+    if rgb:
+        interfaces.append("rgb")
 
-    interfaces = interfaces_re.findall(code)
     assert d, "No documentation found in macro"
 
     m = Macro(
@@ -53,34 +58,36 @@ def load_macro(path: Union[str, pathlib.Path]) -> Macro:
         interfaces=interfaces,
         setactivein=setactivein,
         takeactiveout=activeout,
+        filter=filter,
+        rgb=rgb,
     )
-    print(m)
     return m
 
 
 def define_macro(macro: Macro) -> DefinitionInput:
     args = []
     returns = []
-    kwargs = []
 
     if macro.setactivein:
         args += [
             ArgPortInput(
-                type=PortTypeInput.STRUCTURE,
+                kind=PortKindInput.STRUCTURE,
                 key="image",
                 identifier="@mikro/representation",
                 description="Image to be processed",
                 widget=MY_TOP_REPRESENTATIONS,
+                nullable=False,
             )
         ]
 
     if macro.takeactiveout:
         returns += [
             ReturnPortInput(
-                type=PortTypeInput.STRUCTURE,
+                kind=PortKindInput.STRUCTURE,
                 key="image",
                 identifier="@mikro/representation",
                 description="Image to be processed",
+                nullable=False,
             )
         ]
 
@@ -88,9 +95,8 @@ def define_macro(macro: Macro) -> DefinitionInput:
         name=macro.name,
         description=macro.description,
         args=args,
-        kwargs=kwargs,
         interfaces=macro.interfaces,
         returns=returns,
         interface=macro.name,
-        type=NodeType.FUNCTION,
+        kind=NodeKind.FUNCTION,
     )

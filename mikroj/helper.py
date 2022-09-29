@@ -1,3 +1,4 @@
+import logging
 import imagej
 import scyjava
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -56,7 +57,7 @@ class ImageJ(QtWidgets.QWidget):
             self.request_imagej_dir()
 
         if self.plugins_dir:
-            print(f"Initializing with plugins in  {self.plugins_dir}")
+            logging.info(f"Initializing with plugins in  {self.plugins_dir}")
             scyjava.config.add_option(f"-Dplugins.dir={self.plugins_dir}")
 
         self.imagej_button.setDisabled(True)

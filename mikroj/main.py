@@ -1,21 +1,17 @@
-import abc
+import logging
 import os
 import sys
-from arkitekt.agents.base import BaseAgent
-from arkitekt.compositions.base import Arkitekt
-from arkitekt.messages import Provision
+from arkitekt.apps.rekuest import ArkitektRekuest
 from arkitekt.qt.magic_bar import MagicBar
 from fakts.discovery.static import StaticDiscovery
 from fakts.fakts import Fakts
 from fakts.grants.meta.failsafe import FailsafeGrant
 from fakts.grants.remote.claim import ClaimGrant
 from fakts.grants.remote.public_redirect_grant import PublicRedirectGrant
-from herre.fakts.herre import FaktsHerre
 from koil.composition.qt import QtPedanticKoil
-from mikro.api.schema import RepresentationFragment
-from mikro.arkitekt import ConnectedApp
+from arkitekt.apps.connected import ConnectedApp
 from PyQt5 import QtCore, QtGui, QtWidgets
-from fakts.grants.remote.redirect_grant import RedirectGrant
+from .actors.base import jtranspile, ptranspile
 from mikroj.env import MACROS_PATH, PLUGIN_PATH, get_asset_file
 from mikroj.helper import ImageJ
 from mikroj.registries.macro import ImageJMacroHelper, MacroRegistry
@@ -70,10 +66,8 @@ class MikroJ(QtWidgets.QWidget):
                 ),
                 assert_groups={"mikro"},
             ),
-            arkitekt=Arkitekt(definition_registry=self.macro_registry),
+            rekuest=ArkitektRekuest(definition_registry=self.macro_registry),
         )
-
-        self.app.arkitekt.agent.hook("before_spawn")(self.before_spawn)
 
         self.app.enter()
 
@@ -98,9 +92,6 @@ class MikroJ(QtWidgets.QWidget):
         if self.image_j_path and self.auto_initialize:
             self.initialize()
 
-    async def before_spawn(self, agent: BaseAgent, provision: Provision):
-        print("Provision")
-
     def request_imagej_dir(self):
         dir = QtWidgets.QFileDialog.getExistingDirectory(
             parent=self, caption="Select ImageJ directory"
@@ -115,13 +106,48 @@ class MikroJ(QtWidgets.QWidget):
     def open_settings(self):
         pass
 
+    def run_macro(self, macro, **kwargs):
+
+        transpiled_args = {
+            key: jtranspile(kwarg, self.helper) for key, kwarg in kwargs.items()
+        }
+
+        if self.macro.setactivein:
+            image = transpiled_args.pop(self.provision.template.node.args[0].key)
+            self.helper.ui.show(
+                kwargs[self.provision.template.node.args[0].key].name, image
+            )
+        macro_output = self.helper.py.run_macro(self.macro.code, {**transpiled_args})
+
+        logging.debug(f"{macro_output}")
+        imagej_returns = []
+
+        if self.macro.takeactiveout:
+            imagej_returns.append(self.helper.py.active_image_plus())
+
+        for index, re in enumerate(self.provision.template.node.returns):
+            if index == 0 and self.macro.takeactiveout:
+                continue  # we already put the image out
+            imagej_returns.append(macro_output.getOutput(re.key))
+
+        transpiled_returns = [
+            ptranspile(value, kwargs, self.helper, self.macro, self.provision)
+            for value in imagej_returns
+        ]
+
+        if len(transpiled_returns) == 0:
+            return None
+        if len(transpiled_returns) == 1:
+            return transpiled_returns[0]
+        else:
+            return transpiled_returns
+
     def initialize(self):
         if not self.image_j_path:
             self.magic_bar.magicb.setDisabled(True)
             self.request_imagej_dir()
 
         if self.plugins_dir:
-            print(f"Initializing with plugins in  {self.plugins_dir}")
             scyjava.config.add_option(f"-Dplugins.dir={self.plugins_dir}")
 
         self.imagej_button.setDisabled(True)

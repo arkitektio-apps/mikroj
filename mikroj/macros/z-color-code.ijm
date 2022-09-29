@@ -8,6 +8,7 @@
  * @takeactiveout
  * @donecloseactive
  * @filter
+ * @rgb
  */
 
 var Glut = "Fire";	//default LUT

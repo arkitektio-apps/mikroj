@@ -12,3 +12,4 @@ class Macro(BaseModel):
     donecloseactive: bool = False
     interactive: bool = False
     filter: bool = False
+    rgb: bool = False

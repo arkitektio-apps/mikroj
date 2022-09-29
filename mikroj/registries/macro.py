@@ -2,21 +2,29 @@ import logging
 import os
 import pathlib
 from typing import Any, Optional, Union
-from arkitekt.actors.builder import ActorBuilder
 
-from arkitekt.definition.registry import DefinitionRegistry
-from arkitekt.qt.builders import QtInLoopBuilder
+from rekuest.agents.transport.base import AgentTransport
+
+from rekuest.messages import Provision
+
+from koil.qt import QtCoro
+
+from rekuest.actors.functional import FunctionalFuncActor
+from rekuest.api.schema import ProvisionFragment
+
+from rekuest.definition.registry import ActorBuilder, DefinitionRegistry
+from rekuest.qt.builders import QtInLoopBuilder
 from mikroj.actors.base import FuncMacroActor
 from pydantic import BaseModel, Field, validator
 from mikroj.macro_helper import ImageJMacroHelper
 from mikroj.registries.base import Macro
-
+from qtpy import QtCore
 from mikroj.registries.utils import load_macro, define_macro
 
 logger = logging.getLogger(__name__)
 
 
-class MacroBuilder(ActorBuilder):
+class MacroBuilder:
     """MacroBuilder
 
     MacroBuilder is a builder for FuncMacroActor.
@@ -37,6 +45,35 @@ class MacroBuilder(ActorBuilder):
         )
 
 
+class MacroInLoopBuilder(QtCore.QObject):
+    """MacroBuilder
+
+    MacroBuilder is a builder for FuncMacroActor.
+    """
+
+    provision: ProvisionFragment
+
+    def __init__(self, assign=None, *args, parent=None, **actor_kwargs) -> None:
+        super().__init__(*args, parent=parent)
+        self.coro = QtCoro(
+            lambda f, *args, **kwargs: assign(*args, **kwargs), autoresolve=True
+        )
+        self.provisions = {}
+        self.actor_kwargs = actor_kwargs
+
+    async def on_assign(self, *args, **kwargs) -> None:
+        return await self.coro.acall(*args, **kwargs)
+
+    def __call__(self, provision: Provision, transport: AgentTransport):
+        ac = FunctionalFuncActor(
+            provision=provision,
+            transport=transport,
+            assign=self.on_assign,
+            **self.actor_kwargs,
+        )
+        return ac
+
+
 class MacroRegistry(DefinitionRegistry):
     path: str = "mikroj/macros"
     helper: ImageJMacroHelper = Field(default_factory=ImageJMacroHelper)
@@ -48,11 +85,9 @@ class MacroRegistry(DefinitionRegistry):
         return v
 
     def load_macros(self):
-        print(self.path)
         pathlist = pathlib.Path(self.path).rglob("*.ijm")
         macro_list = []
         for path in pathlist:
-            print(path)
             # because path is object not string
             path_in_str = str(path)
             macro = load_macro(path_in_str)
