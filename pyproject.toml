@@ -8,9 +8,10 @@ packages = [{ include = "mikroj" }]
 
 [tool.poetry.dependencies]
 python = "<3.12,>=3.8"
-pyimagej = "^1.1.1"
+pyimagej = "1.2.1"
 arkitekt = "^0.3.7"
 PyQt5 = "^5.15.4"
+scyjava = "^1.6.0"
 
 [tool.poetry.scripts]
 mikroj = "mikroj.run:main"
