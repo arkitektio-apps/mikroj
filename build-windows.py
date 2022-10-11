@@ -46,4 +46,6 @@ PyInstaller.__main__.run(
         "--icon=mikroj-logo.ico",
     ]
 )
+
+
 shutil.make_archive(".dist/MikroJApp", "zip", "./dist/MikroJ")
