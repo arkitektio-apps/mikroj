@@ -19,6 +19,8 @@ def download_and_unzip(url, extract_to=".", label=""):
         )
 
 
+print("Copying shares")
+
 JDK_LINK = "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.16.1%2B1/OpenJDK11U-jdk_x64_windows_hotspot_11.0.16.1_1.zip"
 MAVEN_LINK = (
     "https://dlcdn.apache.org/maven/maven-3/3.8.6/binaries/apache-maven-3.8.6-bin.zip"
@@ -48,4 +50,5 @@ PyInstaller.__main__.run(
 )
 
 
-shutil.make_archive(".dist/MikroJApp", "zip", "./dist/MikroJ")
+shutil.make_archive("./dist/MikroJApp", "zip", "./dist/MikroJ")
+print("Made archive")
