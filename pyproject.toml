@@ -21,8 +21,6 @@ pytest-aiohttp = "^0.3.0"
 tox = "^3.24.3"
 pyinstaller = "^5.5"
 pytest-cov = "^3.0.0"
-black = "^22.10.0"
-pydoc-markdown = "4.5.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
