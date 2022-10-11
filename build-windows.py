@@ -26,8 +26,8 @@ MAVEN_LINK = (
     "https://dlcdn.apache.org/maven/maven-3/3.8.6/binaries/apache-maven-3.8.6-bin.zip"
 )
 
-download_and_unzip(MAVEN_LINK, "test", "mvn")
-download_and_unzip(JDK_LINK, "test", "jdk")
+download_and_unzip(MAVEN_LINK, "share", "mvn")
+download_and_unzip(JDK_LINK, "share", "jdk")
 
 
 APP_NAME = "MikroJ"
