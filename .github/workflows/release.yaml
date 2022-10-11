@@ -13,8 +13,8 @@ jobs:
           - os: windows-latest
             TARGET: windows
             CMD_BUILD: python build-windows.py
-            OUT_FILE_NAME: KARL.exe
-            ASSET_NAME: "Karl.exe"
+            OUT_FILE_NAME: MikroJ.exe
+            ASSET_NAME: "MikroJ.exe"
             ASSET_MIME: application/vnd.microsoft.portable-executable
     runs-on: ${{ matrix.os }}
     steps:
@@ -47,6 +47,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./dist/${{ matrix.OUT_FILE_NAME}}
+          asset_path: ./build/${{ matrix.OUT_FILE_NAME}}
           asset_name: ${{ matrix.ASSET_NAME}}
           asset_content_type: ${{ matrix.ASSET_MIME}}
