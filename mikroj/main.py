@@ -29,7 +29,7 @@ from fakts.discovery.qt.selectable_beacon import (
 packaged = False
 
 if packaged:
-    os.environ["JAVA_HOME"] = os.path.join(os.getcwd(), "share\\jdk8")
+    os.environ["JAVA_HOME"] = os.path.join(os.getcwd(), "share\\jdk")
     os.environ["PATH"] = (
         os.path.join(os.getcwd(), "share\\mvn\\bin") + os.pathsep + os.environ["PATH"]
     )
@@ -64,9 +64,13 @@ class MikroJ(QtWidgets.QWidget):
                             ),
                             graph="localhost",
                         ),
-                        PublicRedirectGrant(name="MikroJ", scopes=["openid"],discovery=QtSelectableDiscovery(
-                            widget=SelectBeaconWidget(self)
-                        )),
+                        PublicRedirectGrant(
+                            name="MikroJ",
+                            scopes=["openid"],
+                            discovery=QtSelectableDiscovery(
+                                widget=SelectBeaconWidget(self)
+                            ),
+                        ),
                     ],
                 ),
                 assert_groups={"mikro"},
