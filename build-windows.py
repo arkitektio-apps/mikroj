@@ -10,7 +10,7 @@ PyInstaller.__main__.run(
         "--onefile",
         f"--name={APP_NAME}",
         "--noconfirm",
-        "--add-data=share:share",
+        "--add-data=share;share",
         "--additional-hooks-dir=hooks",
         "--icon=mikroj-logo.ico",
     ]
