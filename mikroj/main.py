@@ -18,9 +18,12 @@ from mikroj.registries.macro import ImageJMacroHelper, MacroRegistry
 import imagej
 import scyjava
 from PyQt5 import QtCore, QtGui, QtWidgets
-
 from mikroj.registries.macro import ImageJMacroHelper
 from .errors import NotStartedError
+from fakts.discovery.qt.selectable_beacon import (
+    QtSelectableDiscovery,
+    SelectBeaconWidget,
+)
 
 
 packaged = False
@@ -61,7 +64,9 @@ class MikroJ(QtWidgets.QWidget):
                             ),
                             graph="localhost",
                         ),
-                        PublicRedirectGrant(name="MikroJ", scopes=["openid"]),
+                        PublicRedirectGrant(name="MikroJ", scopes=["openid"],discovery=QtSelectableDiscovery(
+                            widget=SelectBeaconWidget(self)
+                        )),
                     ],
                 ),
                 assert_groups={"mikro"},
