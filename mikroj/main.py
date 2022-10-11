@@ -26,7 +26,7 @@ from fakts.discovery.qt.selectable_beacon import (
 )
 
 
-packaged = False
+packaged = True
 
 if packaged:
     os.environ["JAVA_HOME"] = os.path.join(os.getcwd(), "share\\jdk")
