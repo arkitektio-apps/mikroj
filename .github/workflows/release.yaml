@@ -15,6 +15,7 @@ jobs:
             CMD_BUILD: python build-windows.py
             OUT_FILE_NAME: MikroJApp.zip
             ASSET_NAME: "MikroJApp.zip"
+            ASSET_MIME: application/x-zip-compressed
     runs-on: ${{ matrix.os }}
     steps:
       - name: Create Release
@@ -48,3 +49,4 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./dist/${{ matrix.OUT_FILE_NAME}}
           asset_name: ${{ matrix.ASSET_NAME}}
+          asset_content_type: ${{ matrix.ASSET_MIME}}
