@@ -24,6 +24,7 @@ from fakts.discovery.qt.selectable_beacon import (
     QtSelectableDiscovery,
     SelectBeaconWidget,
 )
+from qt_material import apply_stylesheet
 
 
 packaged = True
@@ -172,6 +173,8 @@ class MikroJ(QtWidgets.QWidget):
 
 def main(**kwargs):
     app = QtWidgets.QApplication(sys.argv)
+    apply_stylesheet(app, theme="dark_teal.xml")
+
     # app.setWindowIcon(QtGui.QIcon(os.path.join(os.getcwd(), 'share\\assets\\icon.png')))
     main_window = MikroJ(**kwargs)
     main_window.show()

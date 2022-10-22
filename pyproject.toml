@@ -12,6 +12,7 @@ pyimagej = "1.2.1"
 arkitekt = "^0.3.7"
 PyQt5 = "^5.15.4"
 scyjava = "^1.6.0"
+qt-material = "^2.12"
 
 [tool.poetry.scripts]
 mikroj = "mikroj.run:main"
