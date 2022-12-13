@@ -93,7 +93,7 @@ class MacroRegistry(DefinitionRegistry):
             macro = load_macro(path_in_str)
 
             definition = define_macro(macro)
-
             actorBuilder = MacroBuilder(macro, self.helper)
+            actorBuilder.__definition__ = definition
 
-            self.register_actor_with_defintion(actorBuilder, definition)
+            self.register_actorBuilder(actorBuilder)

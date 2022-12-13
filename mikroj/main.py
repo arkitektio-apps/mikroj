@@ -6,15 +6,13 @@ from arkitekt.qt.magic_bar import MagicBar
 from fakts.discovery.static import StaticDiscovery
 from fakts.fakts import Fakts
 from fakts.grants.meta.failsafe import FailsafeGrant
-from fakts.grants.remote.claim import ClaimGrant
-from fakts.grants.remote.public_redirect_grant import PublicRedirectGrant
 from koil.composition.qt import QtPedanticKoil
 from arkitekt.apps.connected import ConnectedApp
 from PyQt5 import QtCore, QtGui, QtWidgets
 from .actors.base import jtranspile, ptranspile
 from mikroj.env import MACROS_PATH, PLUGIN_PATH, get_asset_file
 from mikroj.helper import ImageJ
-from mikroj.registries.macro import ImageJMacroHelper, MacroRegistry
+from mikroj.registries.macro import MacroRegistry
 import imagej
 import scyjava
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -24,8 +22,12 @@ from fakts.discovery.qt.selectable_beacon import (
     QtSelectableDiscovery,
     SelectBeaconWidget,
 )
-from qt_material import apply_stylesheet
-
+from fakts.grants import CacheGrant
+from fakts.grants.remote import RetrieveGrant
+from arkitekt.apps.connected import ConnectedApp
+from arkitekt.apps.fakts import ArkitektFakts
+from arkitekt.apps.rekuest import ArkitektRekuest
+from arkitekt import easy
 
 packaged = True
 
@@ -51,32 +53,29 @@ class MikroJ(QtWidgets.QWidget):
 
         self.macro_registry = MacroRegistry(path=MACROS_PATH)
 
-        self.app = ConnectedApp(
-            koil=QtPedanticKoil(uvify=False, parent=self),
-            fakts=Fakts(
-                subapp="mikroj",
-                grant=FailsafeGrant(
-                    grants=[
-                        ClaimGrant(
-                            client_id="DSNwVKbSmvKuIUln36FmpWNVE2KrbS2oRX0ke8PJ",
-                            client_secret="Gp3VldiWUmHgKkIxZjL2aEjVmNwnSyIGHWbQJo6bWMDoIUlBqvUyoGWUWAe6jI3KRXDOsD13gkYVCZR0po1BLFO9QT4lktKODHDs0GyyJEzmIjkpEOItfdCC4zIa3Qzu",
-                            discovery=StaticDiscovery(
-                                base_url="http://localhost:8019/f/"
-                            ),
-                            graph="localhost",
-                        ),
-                        PublicRedirectGrant(
-                            name="MikroJ",
-                            scopes=["openid"],
-                            discovery=QtSelectableDiscovery(
-                                widget=SelectBeaconWidget(self)
-                            ),
-                        ),
-                    ],
-                ),
-                assert_groups={"mikro"},
+        self.app = app = ConnectedApp(
+            koil=QtPedanticKoil(parent=self),
+            rekuest=ArkitektRekuest(
+                definition_registry=self.macro_registry,
             ),
-            rekuest=ArkitektRekuest(definition_registry=self.macro_registry),
+            fakts=ArkitektFakts(
+                grant=CacheGrant(
+                    cache_file="mikro_j_cache.json",
+                    grant=FailsafeGrant(
+                        grants=[
+                            RetrieveGrant(
+                                identifier="github.io.jhnnsrs.mikroj",
+                                version="v0.0.1",
+                                redirect_uri="http://localhost:6767",
+                                discovery=StaticDiscovery(
+                                    base_url="http://localhost:8000/f/"
+                                ),
+                            ),
+                        ]
+                    ),
+                ),
+                assert_groups={"mikro", "rekuest"},
+            ),
         )
 
         self.app.enter()
@@ -172,8 +171,15 @@ class MikroJ(QtWidgets.QWidget):
 
 
 def main(**kwargs):
+
     app = QtWidgets.QApplication(sys.argv)
-    apply_stylesheet(app, theme="dark_teal.xml")
+    try:
+
+        from qt_material import apply_stylesheet
+
+        apply_stylesheet(app, theme="dark_teal.xml")
+    except ImportError:
+        pass
 
     # app.setWindowIcon(QtGui.QIcon(os.path.join(os.getcwd(), 'share\\assets\\icon.png')))
     main_window = MikroJ(**kwargs)
