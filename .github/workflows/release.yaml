@@ -13,9 +13,9 @@ jobs:
           - os: windows-latest
             TARGET: windows
             CMD_BUILD: python build-windows.py
-            OUT_FILE_NAME: KARL/KARL.exe
-            ASSET_NAME: "Karl.exe"
-            ASSET_MIME: application/vnd.microsoft.portable-executable
+            OUT_FILE_NAME: MikroJApp.zip
+            ASSET_NAME: "MikroJApp.zip"
+            ASSET_MIME: application/x-zip-compressed
     runs-on: ${{ matrix.os }}
     steps:
       - name: Create Release
@@ -35,7 +35,7 @@ jobs:
       - name: Run image
         uses: abatilo/actions-poetry@v2.0.0
         with:
-          poetry-version: 1.1.4
+          poetry-version: 1.2
       - name: Run Poetry Install
         run: poetry config virtualenvs.create false && poetry install
       - name: Build with pyinstaller for ${{matrix.TARGET}}
@@ -47,6 +47,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/${{ matrix.OUT_FILE_NAME}}
+          asset_path: ./dist/${{ matrix.OUT_FILE_NAME}}
           asset_name: ${{ matrix.ASSET_NAME}}
           asset_content_type: ${{ matrix.ASSET_MIME}}
