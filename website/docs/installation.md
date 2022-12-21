@@ -1,16 +1,8 @@
 ---
 sidebar_position: 1
-sidebar_label: "Introduction"
-title: "Intro"
+sidebar_label: "Installation"
+title: "Installation"
 ---
-
-## Quick Start
-
-Let's discover **MikroJ in less than 5 minutes**.
-
-MikroJ is just a wrapper for ImageJ. It enables you to use ImageJ functionality with the Arkitekt platform, allowing you
-to use ImageJ Macros, Plugins, etc, as part of realtime arkitekt
-workflows.
 
 ## Choose your version
 
