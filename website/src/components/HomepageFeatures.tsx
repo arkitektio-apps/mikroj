@@ -11,26 +11,31 @@ type FeatureItem = {
 
 const FeatureList: FeatureItem[] = [
   {
-    title: "Single Purpose",
+    title: "Just ImageJ",
     image: "/img/undraw_docusaurus_mountain.svg",
     description: (
       <>
-        Herre just wraps standard oauthlib with a few extra features. Its an
-        abstraction layer to easily integrated auth and authorization into your
-        application.
+        MikroJ just wraps your ImageJ instance and exposes it to arkitekt. Use
+        your ImageJ plugins as you would normally do.
       </>
     ),
   },
   {
-    title: "Pydantic",
+    title: "Bundled or Development",
     image: "/img/undraw_docusaurus_tree.svg",
-    description: <>Herre integrates well with pydantic.</>,
+    description: (
+      <>
+        Do you plan to integrated your own macros or do you want to use a
+        predefined set of community macros? You can choose both MikroJ
+        Development or Bundled Edition
+      </>
+    ),
   },
   {
-    title: "Async ready",
+    title: "Build on PyImageJ",
     image: "/img/undraw_docusaurus_react.svg",
     description: (
-      <>Herre is async ready and provides a synchronous and asynchronous api</>
+      <>MikroJ is build upon PyImageJ, an amazing python to imagej bridge.</>
     ),
   },
 ];

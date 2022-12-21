@@ -7,7 +7,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'mikroj',
-  tagline: 'imagej <3 micro',
+  tagline: 'arkitekt ❤️ imagej',
   url: 'https://jhnnsrs.github.io/',
   baseUrl: '/mikroj/',
   onBrokenLinks: 'throw',
