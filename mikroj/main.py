@@ -26,10 +26,14 @@ from fakts.grants import CacheGrant
 from fakts.grants.remote import RetrieveGrant
 from arkitekt.apps.connected import ConnectedApp
 from arkitekt.apps.fakts import ArkitektFakts
+from arkitekt.apps.rekuest import ArkitektAgent
 from arkitekt.apps.rekuest import ArkitektRekuest
+from rekuest.agents.stateful import StatefulAgent
 from arkitekt import easy
 
 packaged = True
+identifier = "github.io.jhnnsrs.mikroj"
+version = "v0.0.1"
 
 if packaged:
     os.environ["JAVA_HOME"] = os.path.join(os.getcwd(), "share\\jdk")
@@ -53,19 +57,21 @@ class MikroJ(QtWidgets.QWidget):
 
         self.macro_registry = MacroRegistry(path=MACROS_PATH)
 
-        self.app = app = ConnectedApp(
+        self.app = ConnectedApp(
             koil=QtPedanticKoil(parent=self),
             rekuest=ArkitektRekuest(
-                definition_registry=self.macro_registry,
+                agent=ArkitektAgent(
+                    definition_registry=self.macro_registry,
+                )
             ),
             fakts=ArkitektFakts(
                 grant=CacheGrant(
-                    cache_file="mikro_j_cache.json",
+                    cache_file=f"{identifier}-{version}_fakts_cache.json",
                     grant=FailsafeGrant(
                         grants=[
                             RetrieveGrant(
-                                identifier="github.io.jhnnsrs.mikroj",
-                                version="v0.0.1",
+                                identifier=identifier,
+                                version=version,
                                 redirect_uri="http://localhost:6767",
                                 discovery=StaticDiscovery(
                                     base_url="http://localhost:8000/f/"
@@ -113,43 +119,8 @@ class MikroJ(QtWidgets.QWidget):
             self.settings.setValue("image_j_path", "")
 
     def open_settings(self):
+        self.request_imagej_dir()
         pass
-
-    def run_macro(self, macro, **kwargs):
-
-        transpiled_args = {
-            key: jtranspile(kwarg, self.helper) for key, kwarg in kwargs.items()
-        }
-
-        if self.macro.setactivein:
-            image = transpiled_args.pop(self.provision.template.node.args[0].key)
-            self.helper.ui.show(
-                kwargs[self.provision.template.node.args[0].key].name, image
-            )
-        macro_output = self.helper.py.run_macro(self.macro.code, {**transpiled_args})
-
-        logging.debug(f"{macro_output}")
-        imagej_returns = []
-
-        if self.macro.takeactiveout:
-            imagej_returns.append(self.helper.py.active_image_plus())
-
-        for index, re in enumerate(self.provision.template.node.returns):
-            if index == 0 and self.macro.takeactiveout:
-                continue  # we already put the image out
-            imagej_returns.append(macro_output.getOutput(re.key))
-
-        transpiled_returns = [
-            ptranspile(value, kwargs, self.helper, self.macro, self.provision)
-            for value in imagej_returns
-        ]
-
-        if len(transpiled_returns) == 0:
-            return None
-        if len(transpiled_returns) == 1:
-            return transpiled_returns[0]
-        else:
-            return transpiled_returns
 
     def initialize(self):
         if not self.image_j_path:

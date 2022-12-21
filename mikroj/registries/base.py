@@ -11,5 +11,6 @@ class Macro(BaseModel):
     takeactiveout: bool = False
     donecloseactive: bool = False
     interactive: bool = False
+    getroisout: bool = False
     filter: bool = False
     rgb: bool = False

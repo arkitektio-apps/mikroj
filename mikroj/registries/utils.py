@@ -8,6 +8,7 @@ from rekuest.api.schema import (
     NodeKind,
     PortKindInput,
     ReturnPortInput,
+    ChildPortInput
 )
 from pydantic.main import BaseModel
 from mikro.widgets import MY_TOP_REPRESENTATIONS
@@ -26,6 +27,7 @@ is_interactive_re = re.compile(".*@interactive*")
 activein_re = re.compile(".*\@setactivein.*")
 interfaces_re = re.compile(".*@interface:(\w*)\n")
 activeout_re = re.compile(".*\@takeactiveout*")
+getroisout_re = re.compile(".*\@getroisout*")
 donecloseactive_re = re.compile(".*\@donecloseactive*")
 filter_re = re.compile(".*\@filter*")
 rgb_re = re.compile(".*\@rgb*")
@@ -42,6 +44,7 @@ def load_macro(path: Union[str, pathlib.Path]) -> Macro:
     d = documentation.match(code)
     setactivein = bool(activein_re.search(code))
     activeout = bool(activeout_re.search(code))
+    getroisout = bool(getroisout_re.search(code))
     filter = bool(filter_re.search(code))
     rgb = bool(rgb_re.search(code))
     if filter:
@@ -58,6 +61,7 @@ def load_macro(path: Union[str, pathlib.Path]) -> Macro:
         interfaces=interfaces,
         setactivein=setactivein,
         takeactiveout=activeout,
+        getroisout=getroisout,
         filter=filter,
         rgb=rgb,
     )
@@ -88,6 +92,21 @@ def define_macro(macro: Macro) -> DefinitionInput:
                 identifier="@mikro/representation",
                 description="Image to be processed",
                 nullable=False,
+            )
+        ]
+
+    if macro.getroisout:
+        returns += [
+            ReturnPortInput(
+                kind=PortKindInput.LIST,
+                key="rois",
+                nullable=False,
+                description="The active rois",
+                child=ChildPortInput(
+                    identifier="@mikro/roi",
+                    kind=PortKindInput.STRUCTURE,
+                    nullable=False,
+                )
             )
         ]
 

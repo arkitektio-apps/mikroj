@@ -12,6 +12,11 @@ class ImageJMacroHelper(BaseModel):
         self._ij = ij
 
     @property
+    def active_rois(self):
+
+        return self._ij.roiManager().getRoisAsArray()
+
+    @property
     def py(self):
         return self._ij.py
 
