@@ -11,7 +11,6 @@ from arkitekt.apps.connected import ConnectedApp
 from PyQt5 import QtCore, QtGui, QtWidgets
 from .actors.base import jtranspile, ptranspile
 from mikroj.env import MACROS_PATH, PLUGIN_PATH, get_asset_file
-from mikroj.helper import ImageJ
 from mikroj.registries.macro import MacroRegistry
 import imagej
 import scyjava
@@ -30,6 +29,12 @@ from arkitekt.apps.rekuest import ArkitektAgent
 from arkitekt.apps.rekuest import ArkitektRekuest
 from rekuest.agents.stateful import StatefulAgent
 from arkitekt import easy
+from herre import Herre
+from herre.grants import CacheGrant as HerreCacheGrant
+from herre.grants.oauth2.refresh import RefreshGrant
+from herre.grants.fakts import FaktsGrant
+from herre.grants.qt.login_screen import QtLoginScreen, LoginWidget
+
 
 packaged = True
 identifier = "github.io.jhnnsrs.mikroj"
@@ -57,6 +62,10 @@ class MikroJ(QtWidgets.QWidget):
 
         self.macro_registry = MacroRegistry(path=MACROS_PATH)
 
+        self.selectBeaconWidget = SelectBeaconWidget(parent=self)
+
+        self.loginWindow = LoginWidget(identifier, version, parent=self)
+
         self.app = ConnectedApp(
             koil=QtPedanticKoil(parent=self),
             rekuest=ArkitektRekuest(
@@ -67,14 +76,15 @@ class MikroJ(QtWidgets.QWidget):
             fakts=ArkitektFakts(
                 grant=CacheGrant(
                     cache_file=f"{identifier}-{version}_fakts_cache.json",
+                    skip_cache=True,
                     grant=FailsafeGrant(
                         grants=[
                             RetrieveGrant(
                                 identifier=identifier,
                                 version=version,
                                 redirect_uri="http://localhost:6767",
-                                discovery=StaticDiscovery(
-                                    base_url="http://localhost:8000/f/"
+                                discovery=QtSelectableDiscovery(
+                                    widget=self.selectBeaconWidget,
                                 ),
                             ),
                         ]
@@ -82,6 +92,18 @@ class MikroJ(QtWidgets.QWidget):
                 ),
                 assert_groups={"mikro", "rekuest"},
             ),
+            herre=Herre(
+            grant=HerreCacheGrant(
+                cache_file=f"{identifier}-{version}_herre_cache.json",
+                hash=f"{identifier}-{version}",
+                grant=QtLoginScreen(
+                    widget=self.loginWindow,
+                    auto_login=True,
+                    userinfo_endpoint="http://localhost:8000/o/me/",
+                    grant=RefreshGrant(grant=FaktsGrant()),
+                ),
+            ),
+        ),
         )
 
         self.app.enter()
@@ -98,14 +120,17 @@ class MikroJ(QtWidgets.QWidget):
         self.imagej_button.clicked.connect(self.initialize)
         self.settings_button.clicked.connect(self.open_settings)
 
-        self.layout = QtWidgets.QVBoxLayout()
-        self.layout.addWidget(self.imagej_button)
-        self.layout.addWidget(self.settings_button)
-        self.layout.addWidget(self.magic_bar)
+        self.vlayout = QtWidgets.QVBoxLayout()
+        self.vlayout.addWidget(self.imagej_button)
+        self.vlayout.addWidget(self.settings_button)
+        self.vlayout.addWidget(self.magic_bar)
 
-        self.setLayout(self.layout)
+        self.setLayout(self.vlayout)
         if self.image_j_path and self.auto_initialize:
             self.initialize()
+
+
+
 
     def request_imagej_dir(self):
         dir = QtWidgets.QFileDialog.getExistingDirectory(
@@ -122,6 +147,12 @@ class MikroJ(QtWidgets.QWidget):
         self.request_imagej_dir()
         pass
 
+    def get_rois(self):
+        self.macro_registry.helper.get_rois()
+
+    def get_results(self):
+        self.macro_registry.helper.get_results()
+
     def initialize(self):
         if not self.image_j_path:
             self.magic_bar.magicb.setDisabled(True)
@@ -131,14 +162,32 @@ class MikroJ(QtWidgets.QWidget):
             scyjava.config.add_option(f"-Dplugins.dir={self.plugins_dir}")
 
         self.imagej_button.setDisabled(True)
-        self.imagej_button.setDisabled(True)
         self.imagej_button.setText("Initializing...")
         self._ij = imagej.init(self.image_j_path, headless=self.headless)
+        self.imagej_button.setText("ImageJ Initialized")
         self.magic_bar.magicb.setDisabled(False)
+
+
+
+        self.vlayout.update()
+        
+
         self.macro_registry.helper.set_ij_instance(self._ij)
 
         if not self.headless:
             self._ij.ui().showUI()
+
+    def add_testing_ui(self):
+
+        self.get_rois_button = QtWidgets.QPushButton("Get ROIs")
+        self.vlayout.addWidget(self.get_rois_button)
+
+        self.get_results_button = QtWidgets.QPushButton("Get Results")
+        self.vlayout.addWidget(self.get_results_button)
+
+        self.get_rois_button.clicked.connect(self.get_rois)
+        self.get_results_button.clicked.connect(self.get_results)
+
 
 
 def main(**kwargs):

@@ -8,10 +8,11 @@ from mikro.api.schema import (
     RepresentationFragment,
     RepresentationVarietyInput,
     from_xarray,
+    from_df
 )
 from rekuest.definition.validate import auto_validate
 from mikroj.macro_helper import ImageJMacroHelper
-from mikroj.registries.base import Macro
+from mikroj.registries.base import Macro, RESULTS_KEY, ROIS_KEY, ACTIVE_OUT_KEY, ACTIVE_IN_KEY
 from mikro.traits import Representation
 import xarray as xr
 from pydantic import Field
@@ -23,7 +24,9 @@ def jtranspile(
 ):
     if isinstance(instance, Representation):
         x = helper.py.to_java(instance.data.rename(x="y", y="x").squeeze().compute())
-
+        properties = x.getProperties()
+        properties.put("name", instance.name)
+        properties.put("representation_id", instance.id)
         return x
 
     return instance
@@ -74,6 +77,20 @@ def ptranspile(
 
         return rep
 
+    if instance.__class__.__name__ == "net.imagej.legacy.convert.ResultsTableWrapper":
+       pdDataFrame = helper.py.from_java(instance)
+
+       rep_origins = [
+            arg for arg in kwargs.values() if isinstance(arg, RepresentationFragment)
+       ]
+
+
+       table = from_df(pdDataFrame, name=definition.name, rep_origins=rep_origins)
+       return table
+
+
+
+
     return instance
 
 
@@ -107,16 +124,21 @@ class FuncMacroActor(ThreadedFuncActor):
 
         imagej_returns = []
 
-        if self.macro.takeactiveout:
-            imagej_returns.append(self.helper.py.active_image_plus())
+        outkeys = [re.key for re in self._validated_definition.returns]
 
-        if self.macro.getroisout:
-            imagej_returns.append(self.helper.py.rois())
+        for re in self._validated_definition.returns:
+            if re.key == RESULTS_KEY:
+                imagej_returns.append(self.helper.get_results_table())
+                continue
+            if re.key  == ROIS_KEY:
+                imagej_returns.append(self.helper.get_rois())
+                continue
+            if re.key  == ACTIVE_OUT_KEY:
+                imagej_returns.append(self.helper.py.active_image_plus())
+                continue
 
-        for index, re in enumerate(self._validated_definition.returns):
-            if index == 0 and self.macro.takeactiveout:
-                continue  # we already put the image out
             imagej_returns.append(macro_output.getOutput(re.key))
+
 
         transpiled_returns = [
             ptranspile(value, kwargs, self.helper, self.macro, self._validated_definition)

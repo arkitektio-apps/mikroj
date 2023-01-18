@@ -12,7 +12,7 @@ from rekuest.api.schema import (
 )
 from pydantic.main import BaseModel
 from mikro.widgets import MY_TOP_REPRESENTATIONS
-from mikroj.registries.base import Macro
+from mikroj.registries.base import Macro, RESULTS_KEY, ROIS_KEY, ACTIVE_IN_KEY, ACTIVE_OUT_KEY
 
 doc = re.compile("\/\*(?P<name>(.|\n)*)\*\/*")
 
@@ -27,10 +27,18 @@ is_interactive_re = re.compile(".*@interactive*")
 activein_re = re.compile(".*\@setactivein.*")
 interfaces_re = re.compile(".*@interface:(\w*)\n")
 activeout_re = re.compile(".*\@takeactiveout*")
-getroisout_re = re.compile(".*\@getroisout*")
+getroisout_re = re.compile(".*\@getroisout*") # should we extract the rois from the roi manager?
+getresults_re = re.compile(".*\@getresults*") # should we extract the results from the results table?
+
+
+
+
+
 donecloseactive_re = re.compile(".*\@donecloseactive*")
 filter_re = re.compile(".*\@filter*")
 rgb_re = re.compile(".*\@rgb*")
+
+
 
 
 params_re = re.compile(r"#@[^\(]*\((?P<params>[^\)]*)\)")  # line has params
@@ -45,6 +53,7 @@ def load_macro(path: Union[str, pathlib.Path]) -> Macro:
     setactivein = bool(activein_re.search(code))
     activeout = bool(activeout_re.search(code))
     getroisout = bool(getroisout_re.search(code))
+    getresults = bool(getresults_re.search(code))
     filter = bool(filter_re.search(code))
     rgb = bool(rgb_re.search(code))
     if filter:
@@ -62,6 +71,7 @@ def load_macro(path: Union[str, pathlib.Path]) -> Macro:
         setactivein=setactivein,
         takeactiveout=activeout,
         getroisout=getroisout,
+        getresults=getresults,
         filter=filter,
         rgb=rgb,
     )
@@ -76,7 +86,7 @@ def define_macro(macro: Macro) -> DefinitionInput:
         args += [
             ArgPortInput(
                 kind=PortKindInput.STRUCTURE,
-                key="image",
+                key=ACTIVE_IN_KEY,
                 identifier="@mikro/representation",
                 description="Image to be processed",
                 widget=MY_TOP_REPRESENTATIONS,
@@ -88,7 +98,7 @@ def define_macro(macro: Macro) -> DefinitionInput:
         returns += [
             ReturnPortInput(
                 kind=PortKindInput.STRUCTURE,
-                key="image",
+                key=ACTIVE_OUT_KEY,
                 identifier="@mikro/representation",
                 description="Image to be processed",
                 nullable=False,
@@ -99,7 +109,7 @@ def define_macro(macro: Macro) -> DefinitionInput:
         returns += [
             ReturnPortInput(
                 kind=PortKindInput.LIST,
-                key="rois",
+                key=ROIS_KEY,
                 nullable=False,
                 description="The active rois",
                 child=ChildPortInput(
@@ -107,6 +117,17 @@ def define_macro(macro: Macro) -> DefinitionInput:
                     kind=PortKindInput.STRUCTURE,
                     nullable=False,
                 )
+            )
+        ]
+
+    if macro.getresults:
+        returns += [
+            ReturnPortInput(
+                kind=PortKindInput.STRUCTURE,
+                key=RESULTS_KEY,
+                nullable=False,
+                description="The results table",
+                identifier="@mikro/table",
             )
         ]
 
