@@ -33,7 +33,7 @@ from herre import Herre
 from herre.grants import CacheGrant as HerreCacheGrant
 from herre.grants.oauth2.refresh import RefreshGrant
 from herre.grants.fakts import FaktsGrant
-from herre.grants.qt.login_screen import QtLoginScreen, LoginWidget
+from herre.grants.fakts.fakts_login_screen import FaktsQtLoginScreen, LoginWidget
 
 
 packaged = True
@@ -96,10 +96,9 @@ class MikroJ(QtWidgets.QWidget):
             grant=HerreCacheGrant(
                 cache_file=f"{identifier}-{version}_herre_cache.json",
                 hash=f"{identifier}-{version}",
-                grant=QtLoginScreen(
+                grant=FaktsQtLoginScreen(
                     widget=self.loginWindow,
                     auto_login=True,
-                    userinfo_endpoint="http://localhost:8000/o/me/",
                     grant=RefreshGrant(grant=FaktsGrant()),
                 ),
             ),
