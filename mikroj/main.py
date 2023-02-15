@@ -55,7 +55,7 @@ class MikroJ(QtWidgets.QWidget):
         self.setWindowIcon(QtGui.QIcon(get_asset_file("logo.ico")))
         self.setWindowTitle("MikroJ")
 
-        self.settings = QtCore.QSettings("MikroJ", "App1")
+        self.settings = QtCore.QSettings("MikroJ", "ss")
         self.image_j_path = self.settings.value("image_j_path", "")
         self.auto_initialize = self.settings.value("auto_initialize", True)
         self.plugins_dir = self.settings.value("plugins_dir", "")
@@ -67,6 +67,8 @@ class MikroJ(QtWidgets.QWidget):
         self.loginWindow = LoginWidget(identifier, version, parent=self)
 
         self.app = ConnectedApp(
+            identifier=identifier,
+            version=version,
             koil=QtPedanticKoil(parent=self),
             rekuest=ArkitektRekuest(
                 agent=ArkitektAgent(

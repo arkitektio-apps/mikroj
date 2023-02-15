@@ -23,7 +23,7 @@ def jtranspile(
     helper: ImageJMacroHelper,
 ):
     if isinstance(instance, Representation):
-        x = helper.py.to_java(instance.data.rename(x="y", y="x").squeeze().compute())
+        x = helper.py.to_java(instance.data.squeeze().compute())
         properties = x.getProperties()
         properties.put("name", instance.name)
         properties.put("representation_id", instance.id)
@@ -145,12 +145,14 @@ class FuncMacroActor(ThreadedFuncActor):
             for value in imagej_returns
         ]
 
+        print(transpiled_returns)
+
         if len(transpiled_returns) == 0:
             return None
         if len(transpiled_returns) == 1:
             return transpiled_returns[0]
-        else:
-            return transpiled_returns
+        
+        return transpiled_returns
 
     class Config:
         underscore_attrs_are_private = True
