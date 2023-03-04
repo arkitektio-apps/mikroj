@@ -8,13 +8,13 @@ from fakts.fakts import Fakts
 from fakts.grants.meta.failsafe import FailsafeGrant
 from koil.composition.qt import QtPedanticKoil
 from arkitekt.apps.connected import ConnectedApp
-from PyQt5 import QtCore, QtGui, QtWidgets
+from qtpy import QtCore, QtGui, QtWidgets
 from .actors.base import jtranspile, ptranspile
 from mikroj.env import MACROS_PATH, PLUGIN_PATH, get_asset_file
 from mikroj.registries.macro import MacroRegistry
 import imagej
 import scyjava
-from PyQt5 import QtCore, QtGui, QtWidgets
+from qtpy import QtCore, QtGui, QtWidgets
 from mikroj.registries.macro import ImageJMacroHelper
 from .errors import NotStartedError
 from fakts.discovery.qt.selectable_beacon import (

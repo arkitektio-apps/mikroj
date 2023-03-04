@@ -7,11 +7,17 @@ from rekuest.api.schema import (
     DefinitionInput,
     NodeKind,
     PortKindInput,
-    ChildPortInput
+    ChildPortInput,
 )
 from pydantic.main import BaseModel
 from mikro.widgets import MY_TOP_REPRESENTATIONS
-from mikroj.registries.base import Macro, RESULTS_KEY, ROIS_KEY, ACTIVE_IN_KEY, ACTIVE_OUT_KEY
+from mikroj.registries.base import (
+    Macro,
+    RESULTS_KEY,
+    ROIS_KEY,
+    ACTIVE_IN_KEY,
+    ACTIVE_OUT_KEY,
+)
 
 doc = re.compile("\/\*(?P<name>(.|\n)*)\*\/*")
 
@@ -26,18 +32,17 @@ is_interactive_re = re.compile(".*@interactive*")
 activein_re = re.compile(".*\@setactivein.*")
 interfaces_re = re.compile(".*@interface:(\w*)\n")
 activeout_re = re.compile(".*\@takeactiveout*")
-getroisout_re = re.compile(".*\@getroisout*") # should we extract the rois from the roi manager?
-getresults_re = re.compile(".*\@getresults*") # should we extract the results from the results table?
-
-
-
+getroisout_re = re.compile(
+    ".*\@getroisout*"
+)  # should we extract the rois from the roi manager?
+getresults_re = re.compile(
+    ".*\@getresults*"
+)  # should we extract the results from the results table?
 
 
 donecloseactive_re = re.compile(".*\@donecloseactive*")
 filter_re = re.compile(".*\@filter*")
 rgb_re = re.compile(".*\@rgb*")
-
-
 
 
 params_re = re.compile(r"#@[^\(]*\((?P<params>[^\)]*)\)")  # line has params
@@ -115,7 +120,7 @@ def define_macro(macro: Macro) -> DefinitionInput:
                     identifier="@mikro/roi",
                     kind=PortKindInput.STRUCTURE,
                     nullable=False,
-                )
+                ),
             )
         ]
 
