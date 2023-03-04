@@ -3,11 +3,10 @@ import pathlib
 import re
 
 from rekuest.api.schema import (
-    ArgPortInput,
+    PortInput,
     DefinitionInput,
     NodeKind,
     PortKindInput,
-    ReturnPortInput,
     ChildPortInput
 )
 from pydantic.main import BaseModel
@@ -84,19 +83,19 @@ def define_macro(macro: Macro) -> DefinitionInput:
 
     if macro.setactivein:
         args += [
-            ArgPortInput(
+            PortInput(
                 kind=PortKindInput.STRUCTURE,
                 key=ACTIVE_IN_KEY,
                 identifier="@mikro/representation",
                 description="Image to be processed",
-                widget=MY_TOP_REPRESENTATIONS,
+                assignWidget=MY_TOP_REPRESENTATIONS,
                 nullable=False,
             )
         ]
 
     if macro.takeactiveout:
         returns += [
-            ReturnPortInput(
+            PortInput(
                 kind=PortKindInput.STRUCTURE,
                 key=ACTIVE_OUT_KEY,
                 identifier="@mikro/representation",
@@ -107,7 +106,7 @@ def define_macro(macro: Macro) -> DefinitionInput:
 
     if macro.getroisout:
         returns += [
-            ReturnPortInput(
+            PortInput(
                 kind=PortKindInput.LIST,
                 key=ROIS_KEY,
                 nullable=False,
@@ -122,7 +121,7 @@ def define_macro(macro: Macro) -> DefinitionInput:
 
     if macro.getresults:
         returns += [
-            ReturnPortInput(
+            PortInput(
                 kind=PortKindInput.STRUCTURE,
                 key=RESULTS_KEY,
                 nullable=False,
