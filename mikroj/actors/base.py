@@ -43,17 +43,27 @@ def ptranspile(
     if (
         instance.__class__.__name__ == "ij.ImagePlus"
         or instance.__class__.__name__ == "net.imagej.DefaultDataset"
+        or instance.__class__.__name__ == "ij.CompositeImage"
     ):
-        xarray: xr.DataArray = helper.py.from_java(instance).rename(Channel="c")
-        if "c" in xarray.dims:
+        print(instance)
+        xarray: xr.DataArray = helper.py.from_java(instance)
+        print(xarray)
+        if "row" in xarray.dims:
+            xarray = xarray.rename(row="x")
+        if "col" in xarray.dims:
+            xarray = xarray.rename(col="y")
+        if "Channel" in xarray.dims:
+            xarray = xarray.rename(Channel="c")
+            
+        if "c" in xarray.dims:   
             if xarray.sizes["c"] == 3:
-                type = (
-                    RepresentationVarietyInput.RGB
-                    if macro.rgb
-                    else RepresentationVarietyInput.VOXEL
-                )
+                    type = (
+                        RepresentationVarietyInput.RGB
+                        if macro.rgb
+                        else RepresentationVarietyInput.VOXEL
+                    )
             else:
-                type = RepresentationVarietyInput.VOXEL
+                    type = RepresentationVarietyInput.VOXEL
         else:
             type = RepresentationVarietyInput.VOXEL
 
@@ -76,7 +86,6 @@ def ptranspile(
         rep = from_xarray(xarray, name=name, variety=type, origins=origins)
 
         return rep
-
     if instance.__class__.__name__ == "net.imagej.legacy.convert.ResultsTableWrapper":
        pdDataFrame = helper.py.from_java(instance)
 
@@ -109,8 +118,6 @@ class FuncMacroActor(ThreadedFuncActor):
     def assign(self, **kwargs):
         logging.info("Being assigned")
 
-
-
         transpiled_args = {
             key: jtranspile(kwarg, self.helper) for key, kwarg in kwargs.items()
         }
@@ -121,6 +128,7 @@ class FuncMacroActor(ThreadedFuncActor):
                 kwargs[self._validated_definition.args[0].key].name, image
             )
         macro_output = self.helper.py.run_macro(self.macro.code, {**transpiled_args})
+        print(macro_output)
 
         imagej_returns = []
 
@@ -134,7 +142,7 @@ class FuncMacroActor(ThreadedFuncActor):
                 imagej_returns.append(self.helper.get_rois())
                 continue
             if re.key  == ACTIVE_OUT_KEY:
-                imagej_returns.append(self.helper.py.active_image_plus())
+                imagej_returns.append(self.helper.py.active_imageplus())
                 continue
 
             imagej_returns.append(macro_output.getOutput(re.key))
