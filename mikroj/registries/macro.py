@@ -20,7 +20,12 @@ from mikroj.macro_helper import ImageJMacroHelper
 from mikroj.registries.base import Macro
 from qtpy import QtCore
 from mikroj.registries.utils import load_macro, define_macro
-from rekuest.structures.registry import StructureRegistry, get_current_structure_registry
+from rekuest.structures.registry import (
+    StructureRegistry,
+    get_current_structure_registry,
+)
+from rekuest.structures.default import get_default_structure_registry
+
 logger = logging.getLogger(__name__)
 
 
@@ -29,17 +34,21 @@ class MacroBuilder:
 
     MacroBuilder is a builder for FuncMacroActor.
     """
-    __definition__: DefinitionInput
 
-    def __init__(self, definition: DefinitionInput, macro: Macro, helper: ImageJMacroHelper, structure_registry: StructureRegistry) -> None:
-        self.__definition__ = definition
+    def __init__(
+        self,
+        definition: DefinitionInput,
+        macro: Macro,
+        helper: ImageJMacroHelper,
+        structure_registry: StructureRegistry,
+    ) -> None:
+        self.definition = definition
         self.macro = macro
         self.helper = helper
         self.structure_registry = structure_registry
 
     def __call__(self, *args, **kwargs):
         return FuncMacroActor(
-            definition=self.__definition__,
             structure_registry=self.structure_registry,
             macro=self.macro,
             helper=self.helper,
@@ -96,9 +105,12 @@ class MacroRegistry(DefinitionRegistry):
             # because path is object not string
             path_in_str = str(path)
             macro = load_macro(path_in_str)
-            structure_registry = self.structure_registry or get_current_structure_registry()
+            structure_registry = get_default_structure_registry()
 
+            interface = macro.name
             definition = define_macro(macro)
-            actorBuilder = MacroBuilder(definition, macro, self.helper, structure_registry)
+            actorBuilder = MacroBuilder(
+                definition, macro, self.helper, structure_registry
+            )
 
-            self.register_actorBuilder(actorBuilder)
+            self.register_at_interface(interface, definition, actorBuilder)

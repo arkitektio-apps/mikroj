@@ -27,16 +27,17 @@ from arkitekt.apps.connected import ConnectedApp
 from arkitekt.apps.fakts import ArkitektFakts
 from arkitekt.apps.rekuest import ArkitektAgent
 from arkitekt.apps.rekuest import ArkitektRekuest
-from rekuest.agents.stateful import StatefulAgent
 from arkitekt import easy
 from herre import Herre
 from herre.grants import CacheGrant as HerreCacheGrant
 from herre.grants.oauth2.refresh import RefreshGrant
 from herre.grants.fakts import FaktsGrant
-from herre.grants.fakts.fakts_login_screen import FaktsQtLoginScreen, LoginWidget
+from herre.grants.fakts.fakts_login_screen import FaktsQtLoginScreen
+from fakts.grants.remote.base import Manifest
+from herre.grants.qt.login_screen import LoginWidget
+from qtpy.QtWidgets import QMessageBox
 
-
-packaged = True
+packaged = False
 identifier = "github.io.jhnnsrs.mikroj"
 version = "v0.0.1"
 
@@ -82,9 +83,11 @@ class MikroJ(QtWidgets.QWidget):
                     grant=FailsafeGrant(
                         grants=[
                             RetrieveGrant(
-                                identifier=identifier,
-                                version=version,
-                                redirect_uri="http://localhost:6767",
+                                manifest=Manifest(
+                                    identifier=identifier,
+                                    version=version,
+                                    scopes=["read"],
+                                ),
                                 discovery=QtSelectableDiscovery(
                                     widget=self.selectBeaconWidget,
                                 ),
@@ -95,16 +98,16 @@ class MikroJ(QtWidgets.QWidget):
                 assert_groups={"mikro", "rekuest"},
             ),
             herre=Herre(
-            grant=HerreCacheGrant(
-                cache_file=f"{identifier}-{version}_herre_cache.json",
-                hash=f"{identifier}-{version}",
-                grant=FaktsQtLoginScreen(
-                    widget=self.loginWindow,
-                    auto_login=True,
-                    grant=RefreshGrant(grant=FaktsGrant()),
+                grant=HerreCacheGrant(
+                    cache_file=f"{identifier}-{version}_herre_cache.json",
+                    hash=f"{identifier}-{version}",
+                    grant=FaktsQtLoginScreen(
+                        widget=self.loginWindow,
+                        auto_login=True,
+                        grant=RefreshGrant(grant=FaktsGrant()),
+                    ),
                 ),
             ),
-        ),
         )
 
         self.app.enter()
@@ -129,9 +132,6 @@ class MikroJ(QtWidgets.QWidget):
         self.setLayout(self.vlayout)
         if self.image_j_path and self.auto_initialize:
             self.initialize()
-
-
-
 
     def request_imagej_dir(self):
         dir = QtWidgets.QFileDialog.getExistingDirectory(
@@ -160,26 +160,38 @@ class MikroJ(QtWidgets.QWidget):
             self.request_imagej_dir()
 
         if self.plugins_dir:
-            scyjava.config.add_option(f"-Dplugins.dir={self.plugins_dir}")
+            # scyjava.config.add_option(f"-Dplugins.dir={self.plugins_dir}")
+            pass
 
-        self.imagej_button.setDisabled(True)
-        self.imagej_button.setText("Initializing...")
-        self._ij = imagej.init(self.image_j_path, headless=self.headless)
-        self.imagej_button.setText("ImageJ Initialized")
-        self.magic_bar.magicb.setDisabled(False)
+        try:
+            self.imagej_button.setDisabled(True)
+            self.imagej_button.setText("Initializing...")
+            self._ij = imagej.init(self.image_j_path, mode="interactive")
+            self.imagej_button.setText("ImageJ Initialized")
+            self.magic_bar.magicb.setDisabled(False)
 
+            self.vlayout.update()
 
+            self.macro_registry.helper.set_ij_instance(self._ij)
 
-        self.vlayout.update()
-        
+            if not self.headless:
+                self._ij.ui().showUI()
+        except Exception as e:
+            self.image_j_path = None
+            self.imagej_button.setText("ImageJ Failed to Initialize")
+            self.magic_bar.magicb.setDisabled(True)
+            self.imagej_button.setDisabled(False)
+            self.show_exception(e)
 
-        self.macro_registry.helper.set_ij_instance(self._ij)
-
-        if not self.headless:
-            self._ij.ui().showUI()
+    def show_exception(self, exception: Exception):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Critical)
+        msg.setText("Error")
+        msg.setInformativeText(str(exception))
+        msg.setWindowTitle("Error")
+        msg.exec_()
 
     def add_testing_ui(self):
-
         self.get_rois_button = QtWidgets.QPushButton("Get ROIs")
         self.vlayout.addWidget(self.get_rois_button)
 
@@ -190,12 +202,9 @@ class MikroJ(QtWidgets.QWidget):
         self.get_results_button.clicked.connect(self.get_results)
 
 
-
 def main(**kwargs):
-
     app = QtWidgets.QApplication(sys.argv)
     try:
-
         from qt_material import apply_stylesheet
 
         apply_stylesheet(app, theme="dark_teal.xml")
