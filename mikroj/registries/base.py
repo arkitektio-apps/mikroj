@@ -7,7 +7,6 @@ RESULTS_KEY = "results"
 ROIS_KEY = "rois"
 
 
-
 class Macro(BaseModel):
     code: str
     name: str

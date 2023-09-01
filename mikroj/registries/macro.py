@@ -98,14 +98,14 @@ class MacroRegistry(DefinitionRegistry):
             raise ValueError(f"Path {v} does not exist")
         return v
 
-    def load_macros(self):
+    def load_macros(self, structure_registry: StructureRegistry = None):
         pathlist = pathlib.Path(self.path).rglob("*.ijm")
         macro_list = []
         for path in pathlist:
             # because path is object not string
             path_in_str = str(path)
             macro = load_macro(path_in_str)
-            structure_registry = get_default_structure_registry()
+            structure_registry = structure_registry or get_default_structure_registry()
 
             interface = macro.name
             definition = define_macro(macro)
@@ -113,4 +113,6 @@ class MacroRegistry(DefinitionRegistry):
                 definition, macro, self.helper, structure_registry
             )
 
-            self.register_at_interface(interface, definition, actorBuilder)
+            self.register_at_interface(
+                interface, definition, structure_registry, actorBuilder
+            )

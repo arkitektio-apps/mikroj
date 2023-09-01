@@ -29,5 +29,14 @@
         "**/__pycache__": true,
         "**/.pytest_cache": true,
     },
-    "mypy.runUsingActiveInterpreter": true
+    "mypy.runUsingActiveInterpreter": true,
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+    "python.formatting.provider": "none",
+    "python.testing.pytestArgs": [
+        "tests"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
 }

@@ -6,6 +6,7 @@ import pandas as pd
 
 CreateRoiArguments = Create_roiMutation.Arguments
 
+
 class ImageJMacroHelper(BaseModel):
     maximum_memory: Optional[int] = Field(default=None)
     minimum_memory: Optional[int] = Field(default=None)
@@ -21,13 +22,12 @@ class ImageJMacroHelper(BaseModel):
 
     def get_rois(self) -> List[CreateRoiArguments]:
         # get ImageJ resources
-        OvalRoi = sj.jimport('ij.gui.OvalRoi')
-        PolygonRoi = sj.jimport('ij.gui.PolygonRoi')
+        OvalRoi = sj.jimport("ij.gui.OvalRoi")
+        PolygonRoi = sj.jimport("ij.gui.PolygonRoi")
 
-        FloatPolygon = sj.jimport('ij.process.FloatPolygon')
-        Overlay = sj.jimport('ij.gui.Overlay')
+        FloatPolygon = sj.jimport("ij.process.FloatPolygon")
+        Overlay = sj.jimport("ij.gui.Overlay")
         ov = Overlay()
-
 
         rm = self._ij.RoiManager.getRoiManager()
         rois = rm.getRoisAsArray()
@@ -36,38 +36,45 @@ class ImageJMacroHelper(BaseModel):
 
         for roi in rois:
             image_plus = self._ij.WindowManager.getImage(roi.getImageID())
-            ds = self._ij.py.to_dataset(image_plus) # conversion of legacy ImagePlus to Dataset
+            ds = self._ij.py.to_dataset(
+                image_plus
+            )  # conversion of legacy ImagePlus to Dataset
 
             id = ds.getProperties().get("representation_id")
             if id:
                 if isinstance(roi, OvalRoi):
-                    print(roi)
+                    pass
                 if isinstance(roi, PolygonRoi):
                     t = roi.getFloatPolygon()
-                    arguments.append(CreateRoiArguments(representation=id, type=RoiTypeInput.POLYGON, vectors=[InputVector(x=x, y=y) for x, y in zip(t.xpoints, t.ypoints)]))
+                    arguments.append(
+                        CreateRoiArguments(
+                            representation=id,
+                            type=RoiTypeInput.POLYGON,
+                            vectors=[
+                                InputVector(x=x, y=y)
+                                for x, y in zip(t.xpoints, t.ypoints)
+                            ],
+                        )
+                    )
 
         return arguments
 
     def get_results(self) -> pd.DataFrame:
         # get ImageJ resources
-        Table = sj.jimport('org.scijava.table.Table')
+        Table = sj.jimport("org.scijava.table.Table")
         results = self._ij.ResultsTable.getResultsTable()
-        print(results.getProperties())
         table = self._ij.convert().convert(results, Table)
         measurements = self._ij.py.from_java(table)
-        print(measurements)
 
         return measurements
 
     def get_results_table(self):
-        Table = sj.jimport('org.scijava.table.Table')
+        Table = sj.jimport("org.scijava.table.Table")
         results = self._ij.ResultsTable.getResultsTable()
         return self._ij.convert().convert(results, Table)
 
-
     @property
     def active_rois(self):
-
         return self._ij.roiManager().getRoisAsArray()
 
     @property
@@ -81,3 +88,4 @@ class ImageJMacroHelper(BaseModel):
     class Config:
         arbitary_types_allowed = True
         underscore_attrs_are_private = True
+        copy_on_model_validation = False

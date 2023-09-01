@@ -10,7 +10,14 @@ packages = [{ include = "mikroj" }]
 python = "<3.12,>=3.8"
 pyimagej = "1.4.0"
 scyjava = "^1.6.0"
-arkitekt = ">=0.4.45"
+arkitekt = { version = "0.5.0", extras = [
+    "cli",
+    "reaktion",
+    "mikro",
+    "unlok",
+    "fluss",
+    "rekuest",
+] }
 qtpy = "^2.3.0"
 
 [tool.poetry.scripts]

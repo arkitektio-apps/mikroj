@@ -14,11 +14,8 @@ from pydantic.main import BaseModel
 from mikro.widgets import MY_TOP_REPRESENTATIONS
 from mikroj.registries.base import (
     Macro,
-    RESULTS_KEY,
-    ROIS_KEY,
-    ACTIVE_IN_KEY,
-    ACTIVE_OUT_KEY,
 )
+from mikroj import constants, structures
 
 doc = re.compile("\/\*(?P<name>(.|\n)*)\*\/*")
 
@@ -83,6 +80,45 @@ def load_macro(path: Union[str, pathlib.Path]) -> Macro:
     return m
 
 
+def parse_macro(code: str) -> Macro:
+    interfaces = interfaces_re.findall(code) or []
+    d = documentation.match(code)
+    setactivein = bool(activein_re.search(code))
+    activeout = bool(activeout_re.search(code))
+    getroisout = bool(getroisout_re.search(code))
+    getresults = bool(getresults_re.search(code))
+
+
+
+
+
+
+
+    
+    filter = bool(filter_re.search(code))
+    rgb = bool(rgb_re.search(code))
+    if filter:
+        interfaces.append("filter")
+    if rgb:
+        interfaces.append("rgb")
+
+    assert d, "No documentation found in macro"
+
+    m = Macro(
+        name=d.group("name"),
+        description=d.group("description"),
+        code=code,
+        interfaces=interfaces,
+        setactivein=setactivein,
+        takeactiveout=activeout,
+        getroisout=getroisout,
+        getresults=getresults,
+        filter=filter,
+        rgb=rgb,
+    )
+    return m
+
+
 def define_macro(macro: Macro) -> DefinitionInput:
     args = []
     returns = []
@@ -91,12 +127,11 @@ def define_macro(macro: Macro) -> DefinitionInput:
         args += [
             PortInput(
                 kind=PortKindInput.STRUCTURE,
-                key=ACTIVE_IN_KEY,
-                identifier="@mikro/representation",
+                key=constants.ACTIVE_IN_KEY,
+                identifier=constants.IMAGE_J_PLUS_IDENTIFIER,
                 description="Image to be processed",
-                assignWidget=MY_TOP_REPRESENTATIONS,
                 nullable=False,
-                scope=Scope.GLOBAL,
+                scope=Scope.LOCAL,
             )
         ]
 
@@ -104,40 +139,11 @@ def define_macro(macro: Macro) -> DefinitionInput:
         returns += [
             PortInput(
                 kind=PortKindInput.STRUCTURE,
-                key=ACTIVE_OUT_KEY,
-                identifier="@mikro/representation",
-                description="Image to be processed",
+                key=constants.ACTIVE_OUT_KEY,
+                identifier=constants.IMAGE_J_PLUS_IDENTIFIER,
+                description="Image that was processed",
                 nullable=False,
-                scope=Scope.GLOBAL,
-            )
-        ]
-
-    if macro.getroisout:
-        returns += [
-            PortInput(
-                kind=PortKindInput.LIST,
-                key=ROIS_KEY,
-                nullable=False,
-                description="The active rois",
-                child=ChildPortInput(
-                    identifier="@mikro/roi",
-                    kind=PortKindInput.STRUCTURE,
-                    nullable=False,
-                    scope=Scope.GLOBAL,
-                ),
-                scope=Scope.GLOBAL,
-            )
-        ]
-
-    if macro.getresults:
-        returns += [
-            PortInput(
-                kind=PortKindInput.STRUCTURE,
-                key=RESULTS_KEY,
-                nullable=False,
-                description="The results table",
-                identifier="@mikro/table",
-                scope=Scope.GLOBAL,
+                scope=Scope.LOCAL,
             )
         ]
 
