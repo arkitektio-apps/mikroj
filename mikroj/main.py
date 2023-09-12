@@ -28,15 +28,10 @@ import scyjava as sj
 from mikroj.language.transpile import TranspileRegistry
 from mikroj.extension import MacroExtension
 
-packaged = False
+
+
 identifier = "github.io.jhnnsrs.mikroj"
 version = "v0.0.1"
-
-if packaged:
-    os.environ["JAVA_HOME"] = os.path.join(os.getcwd(), "share\\jdk")
-    os.environ["PATH"] = (
-        os.path.join(os.getcwd(), "share\\mvn\\bin") + os.pathsep + os.environ["PATH"]
-    )
 
 
 structure_registry = get_default_structure_registry()
@@ -398,7 +393,16 @@ class MikroJ(QtWidgets.QWidget):
             traceback.print_exc()
 
 
-def main(**kwargs):
+def main(run_packaged=False, **kwargs):
+
+    if run_packaged:
+        os.environ["JAVA_HOME"] = os.path.join(os.getcwd(), "share\\jdk")
+        os.environ["PATH"] = (
+            os.path.join(os.getcwd(), "share\\mvn\\bin") + os.pathsep + os.environ["PATH"]
+        )
+
+
+
     qtapp = QtWidgets.QApplication(sys.argv)
 
     main_window = MikroJ(**kwargs)
