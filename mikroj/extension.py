@@ -1,88 +1,40 @@
-from reaktion.actor import FlowActor
-from rekuest.agents.errors import ProvisionException
-from rekuest.agents.base import BaseAgent
-
 import logging
-from rekuest.register import register_func
-from rekuest.actors.base import Actor
-from rekuest.actors.types import Passport, Assignment
-from rekuest.actors.transport.local_transport import (
-    AgentActorTransport,
-    AgentActorAssignTransport,
-)
-from fluss.api.schema import aget_flow
-from rekuest.api.schema import aget_template, NodeKind
-from rekuest.messages import Provision
 from typing import Optional
+
+from pydantic import BaseModel, Field
+
+from arkitekt import useInstanceID
+from rekuest.actors.actify import reactify
+from rekuest.actors.base import Actor, ActorTransport
+from rekuest.actors.types import Passport
+from rekuest.agents.base import BaseAgent
 from rekuest.api.schema import (
-    PortInput,
-    DefinitionInput,
     TemplateFragment,
-    NodeKind,
     acreate_template,
-    adelete_node,
-    afind,
 )
-from fakts.fakts import Fakts
-from fluss.api.schema import (
-    FlowFragment,
-    LocalNodeFragment,
-    GraphNodeFragment,
-)
-from reaktion.utils import infer_kind_from_graph
-from rekuest.widgets import SliderWidget, StringWidget
+from rekuest.definition.registry import DefinitionRegistry
 from rekuest.structures.default import get_default_structure_registry
 from rekuest.structures.registry import StructureRegistry
-from pydantic import BaseModel, Field
-from rekuest.agents.extension import AgentExtension
+from rekuest.widgets import StringWidget
 
-from rekuest.definition.registry import DefinitionRegistry
-from rekuest.actors.actify import reactify
-from .macro_helper import ImageJMacroHelper
-from .language.types import Macro
-from .language.parse import parse_macro
-from .language.define import define_macro
-from .language.transpile import TranspileRegistry
 from .actors.base import FuncMacroActor
-from arkitekt import useInstanceID
-from rekuest.actors.base import ActorTransport
+from .language.define import define_macro
+from .language.parse import parse_macro
+from .language.transpile import TranspileRegistry
+from .bridge import ImageJBridge
 
 logger = logging.getLogger(__name__)
 
 
-class MacroBuilder:
-    """MacroBuilder
+class MacroExtension(BaseModel):
+    """MacroExtension
 
-    MacroBuilder is a builder for FuncMacroActor.
+    The MacroExtension is an extension for the Rekuest Agent that allows
+    the user to deploy ImageJ Macros as Actors (from any app) on this agent.
     """
 
-    def __init__(
-        self,
-        definition: DefinitionInput,
-        macro: Macro,
-        helper: ImageJMacroHelper,
-        structure_registry: StructureRegistry,
-    ) -> None:
-        self.definition = definition
-        self.macro = macro
-        self.helper = helper
-        self.structure_registry = structure_registry
-
-    def __call__(self, *args, **kwargs):
-        return FuncMacroActor(
-            structure_registry=self.structure_registry,
-            macro=self.macro,
-            helper=self.helper,
-            expand_inputs=True,
-            shrink_outputs=True,
-            *args,
-            **kwargs,
-        )
-
-
-class MacroExtension(BaseModel):
     transpile_registry: TranspileRegistry = Field(default_factory=TranspileRegistry)
-    helper: ImageJMacroHelper
+    bridge: ImageJBridge
     structure_registry: StructureRegistry = Field(
         default_factory=get_default_structure_registry
     )
@@ -107,7 +59,7 @@ class MacroExtension(BaseModel):
             passport=passport,
             transport=transport,
             structure_registry=self.structure_registry,
-            helper=self.helper,
+            bridge=self.bridge,
             definition=definition,
             agent=agent,
             collector=agent.collector,

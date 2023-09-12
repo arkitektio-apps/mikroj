@@ -1,15 +1,10 @@
 import os
 import sys
 from arkitekt.qt.magic_bar import MagicBar
-from PyQt5 import QtCore, QtGui, QtWidgets
 from mikroj.env import get_asset_file
 import imagej
-from PyQt5 import QtCore, QtGui, QtWidgets
-from fakts.discovery.qt.selectable_beacon import (
-    SelectBeaconWidget,
-)
-from herre.grants.qt.login_screen import LoginWidget
 from qtpy.QtWidgets import QMessageBox
+from qtpy import QtWidgets, QtGui, QtCore
 from rekuest.qt.builders import qtwithfutureactifier, qtinloopactifier
 from mikroj.widgets.done_yet import DoneYetWidget
 from arkitekt.builders import publicscheduleqt
@@ -23,18 +18,14 @@ from mikro.api.schema import (
 )
 import traceback
 from typing import Tuple
-from typing import Optional
 from mikro.api.schema import from_xarray, TableFragment, from_df
 from rekuest.widgets import ParagraphWidget
 from rekuest.structures.default import get_default_structure_registry
-from rekuest.api.schema import TemplateFragment, create_template
 from mikroj import constants, structures
 from typing import List, Optional
-from mikroj.macro_helper import ImageJMacroHelper
+from mikroj.bridge import ImageJBridge
 import scyjava as sj
 from mikroj.language.transpile import TranspileRegistry
-from mikroj.language.parse import parse_macro
-from mikroj.language.define import define_macro
 from mikroj.extension import MacroExtension
 
 packaged = False
@@ -55,12 +46,11 @@ structure_registry.register_as_structure(
 
 
 class MikroJ(QtWidgets.QWidget):
-    helper: Optional[ImageJMacroHelper] = None
+    bridge: Optional[ImageJBridge] = None
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
-        # self.setWindowIcon(QtGui.QIcon(os.path.join(os.getcwd(), 'share\\assets\\icon.png')))
         self.setWindowIcon(QtGui.QIcon(get_asset_file("logo.ico")))
         self.setWindowTitle("MikroJ")
 
@@ -68,7 +58,8 @@ class MikroJ(QtWidgets.QWidget):
         self.image_j_path = self.settings.value("image_j_path", "")
         self.auto_initialize = self.settings.value("auto_initialize", True)
         self.plugins_dir = self.settings.value("plugins_dir", "")
-        self.helper = ImageJMacroHelper()
+
+        self.bridge = ImageJBridge()
         self.transpile_registry = TranspileRegistry()
 
         self.app = publicscheduleqt(
@@ -78,10 +69,13 @@ class MikroJ(QtWidgets.QWidget):
             parent=self,
         )
 
-        self.app.rekuest.agent.extensions["macro"] = MacroExtension(
-            helper=self.helper,
-            structure_registry=structure_registry,
-            transiple_registry=self.transpile_registry,
+        self.app.rekuest.register_extension(
+            "macro",
+            MacroExtension(
+                bridge=self.bridge,
+                structure_registry=structure_registry,
+                transpile_registry=self.transpile_registry,
+            ),
         )
 
         self.magic_bar = MagicBar(
@@ -101,7 +95,11 @@ class MikroJ(QtWidgets.QWidget):
             structure_registry=structure_registry,
         )
         self.app.rekuest.register(
-            self.get_results_table,
+            self.get_results_as_table,
+            structure_registry=structure_registry,
+        )
+        self.app.rekuest.register(
+            self.analyze_particles,
             structure_registry=structure_registry,
         )
         self.app.rekuest.register(
@@ -122,11 +120,8 @@ class MikroJ(QtWidgets.QWidget):
             structure_registry=structure_registry,
         )
 
-        self.headless = False
-        self._ij: imagej = None
-
         self.imagej_button = QtWidgets.QPushButton("Initialize ImageJ")
-        self.settings_button = QtWidgets.QPushButton("Settings")
+        self.settings_button = QtWidgets.QPushButton("Change ImageJ")
         self.imagej_button.clicked.connect(self.initialize)
         self.settings_button.clicked.connect(self.open_settings)
 
@@ -138,6 +133,7 @@ class MikroJ(QtWidgets.QWidget):
         self.vlayout.addWidget(self.magic_bar)
 
         self.setLayout(self.vlayout)
+        self.magic_bar.magicb.setDisabled(True)
         if self.image_j_path and self.auto_initialize:
             self.initialize()
 
@@ -156,14 +152,9 @@ class MikroJ(QtWidgets.QWidget):
         self.request_imagej_dir()
         pass
 
-    def get_rois(self):
-        self.helper.get_rois()
-
-    def get_results(self):
-        self.helper.get_results()
-
-    def ask_if_done(self, future, message: str):
-        self.done_yet_widget = DoneYetWidget(future, message)
+    def ask_if_done(self, qtfuture, message: str):
+        """Ask if user is done"""
+        self.done_yet_widget = DoneYetWidget(qtfuture, message)
         self.done_yet_widget.show()
 
     def load_into_imagej(
@@ -188,9 +179,9 @@ class MikroJ(QtWidgets.QWidget):
             The original name
         """
         image_plus = structures.ImageJPlus.from_xarray(
-            image.data.compute(), image.name, self.helper
+            image.data.compute(), image.name, self.bridge
         )
-        image_plus.set_active(self.helper)
+        image_plus.set_active()
         return (
             image_plus,
             image.name,
@@ -221,7 +212,7 @@ class MikroJ(QtWidgets.QWidget):
         image: RepresentationFragment
             The new image
         """
-        data = image.to_xarray(self.helper)
+        data = image.to_xarray()
         return from_xarray(
             data,
             name=name or image.name,
@@ -249,11 +240,50 @@ class MikroJ(QtWidgets.QWidget):
             The newly active image
         """
         image.set_active()
-        execution_info = self.helper.py.run_macro(macro, {})
-        imageplus = self.helper.py.active_imageplus()
-        return structures.ImageJPlus(imageplus, image.name)
+        self.bridge.run_macro(macro, {})
+        imageplus = self.bridge.active_imageplus()
+        return structures.ImageJPlus(imageplus, image.name, self.bridge)
 
-    def get_results_table(
+    def analyze_particles(
+        self, image: RepresentationFragment
+    ) -> Tuple[TableFragment, RepresentationFragment]:
+        """Analyze Particles
+
+        Analyzes particles in an image
+
+        Parameters
+        ----------
+        image : RepresentationFragment
+            The image
+        """
+        image_plus, name = self.load_into_imagej(image)
+        macro = """
+        run("8-bit");
+        setAutoThreshold("Default dark");
+        run("Analyze Particles...", "size=0-Infinity circularity=0.00-1.00 show=[Count Masks]  display exclude clear add");
+        """
+        after_image = self.run_image_to_image_macro(image_plus, macro)
+        results = self.get_results_as_table(f"Analyzd Particles of {name}", [image])
+        uploaded = from_xarray(
+            after_image.to_xarray(),
+            name="Particles of " + name,
+            origins=[image],
+            variety=RepresentationVarietyInput.MASK,
+        )
+        image_plus.close()
+        after_image.close()
+        return results, uploaded
+
+    def get_labels(self, image: structures.ImageJPlus):
+        ImagePlus = sj.jimport("ij.ImagePlus")
+        mask = ImagePlus("cells-mask", image.value.createThresholdMask())
+        x = structures.ImageJPlus(mask, "cells-mask", self.bridge)
+        x.set_active()
+        overlay = image.value.getOverlay()
+        print(mask, overlay)
+        return image.get_as_label()
+
+    def get_results_as_table(
         self,
         name: Optional[str],
         image_origins: Optional[List[RepresentationFragment]],
@@ -263,10 +293,7 @@ class MikroJ(QtWidgets.QWidget):
         Gets the results table and converts it to a TableFragment
 
         """
-        Table = sj.jimport("org.scijava.table.Table")
-        results = self.helper._ij.ResultsTable.getResultsTable()
-        table = self.helper._ij.convert().convert(results, Table)
-        measurements = self.helper._ij.py.from_java(table)
+        measurements = self.bridge.get_results_as_df()
 
         return from_df(measurements, name=name or "Results", rep_origins=image_origins)
 
@@ -286,11 +313,11 @@ class MikroJ(QtWidgets.QWidget):
         OvalRoi = sj.jimport("ij.gui.OvalRoi")
         PolygonRoi = sj.jimport("ij.gui.PolygonRoi")
 
-        FloatPolygon = sj.jimport("ij.process.FloatPolygon")
+        sj.jimport("ij.process.FloatPolygon")
         Overlay = sj.jimport("ij.gui.Overlay")
-        ov = Overlay()
+        Overlay()
 
-        rm = self.helper._ij.RoiManager.getRoiManager()
+        rm = self.bridge._ij.RoiManager.getRoiManager()
         rois = rm.getRoisAsArray()
 
         arguments = []
@@ -328,18 +355,20 @@ class MikroJ(QtWidgets.QWidget):
         try:
             self.imagej_button.setDisabled(True)
             self.imagej_button.setText("Initializing...")
-            path = os.getcwd()
+            path = (
+                os.getcwd()
+            )  # This is a hack until https://github.com/imagej/pyimagej/issues/150
             self._ij = imagej.init(self.image_j_path, mode="interactive")
-            os.chdir(path)
+            os.chdir(path)  ## 
             self.imagej_button.setText("ImageJ Initialized")
             self.magic_bar.magicb.setDisabled(False)
 
             self.vlayout.update()
 
-            self.helper.set_ij_instance(self._ij)
+            self.bridge.set_ij_instance(self._ij)
+            self._ij.ui().showUI()
+            self.magic_bar.magicb.setDisabled(False)
 
-            if not self.headless:
-                self._ij.ui().showUI()
         except Exception as e:
             self.image_j_path = None
             self.imagej_button.setText("ImageJ Failed to Initialize")
@@ -365,27 +394,16 @@ class MikroJ(QtWidgets.QWidget):
 
         try:
             raise exception
-        except Exception as e:
+        except Exception:
             traceback.print_exc()
-
-    def add_testing_ui(self):
-        self.get_rois_button = QtWidgets.QPushButton("Get ROIs")
-        self.vlayout.addWidget(self.get_rois_button)
-
-        self.get_results_button = QtWidgets.QPushButton("Get Results")
-        self.vlayout.addWidget(self.get_results_button)
-
-        self.get_rois_button.clicked.connect(self.get_rois)
-        self.get_results_button.clicked.connect(self.get_results)
 
 
 def main(**kwargs):
-    app = QtWidgets.QApplication(sys.argv)
+    qtapp = QtWidgets.QApplication(sys.argv)
 
-    # app.setWindowIcon(QtGui.QIcon(os.path.join(os.getcwd(), 'share\\assets\\icon.png')))
     main_window = MikroJ(**kwargs)
     main_window.show()
-    sys.exit(app.exec_())
+    sys.exit(qtapp.exec_())
 
 
 if __name__ == "__main__":

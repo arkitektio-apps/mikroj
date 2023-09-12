@@ -159,6 +159,8 @@ def to_dataset(p: Parameter) -> PortInput:
 
 
 class TranspileRegistry(BaseModel):
+    """Given a parameter, transpile it to a port input"""
+
     type_map: dict[DataType, Callable[[Parameter], PortInput]] = {
         DataType.BIGINTEGER: to_int,
         DataType.BOOLEAN: to_bool,

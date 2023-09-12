@@ -1,5 +1,4 @@
-from typing import Union, List
-import pathlib
+from typing import List
 import re
 from .types import Macro, Parameter, Context
 
@@ -33,6 +32,23 @@ params_re = re.compile(r"#@[^\(]*\((?P<params>[^\)]*)\)")  # line has params
 
 
 def parse_parameters(code: str, output=False) -> List[Parameter]:
+    """Checks for parameters in the code
+
+    Will parse the macro code for parameters. If the output flag is set to True,
+    it will parse for output parameters.
+
+    Parameters
+    ----------
+    code : str
+        The Macro Code
+    output : bool, optional
+        Parse outputs instead of inputs, by default False
+
+    Returns
+    -------
+    List[Parameter]
+        The list of parameters
+    """
     if not output:
         matches = re.findall(r"#@ (?!output)(\w+) \((.*?)\) ?([\w]*)?", code)
     else:

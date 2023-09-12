@@ -9,6 +9,9 @@ from .transpile import TranspileRegistry
 def define_macro(
     macro: Macro, transpile_registry: TranspileRegistry
 ) -> DefinitionInput:
+    """Defines a transcoded macro as a definition input.
+    on the fly."""
+
     args = []
     returns = []
 

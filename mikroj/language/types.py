@@ -1,4 +1,6 @@
-from typing import List, Optional, Any
+""" Python types for ImageJ Macro Defintions"""
+
+from typing import List, Optional
 from pydantic import BaseModel, Field, validator
 from enum import Enum
 
@@ -23,13 +25,20 @@ class DataType(str, Enum):
 
 class Visibility(str, Enum):
     NORMAL = "NORMAL"
-    """ parameter is included in the history for purposes of data provenance, and included as a parameter when recording scripts."""
+    """ parameter is included in the history for purposes of data provenance,
+      and included as a parameter when recording scripts."""
     TRANSIENT = "TRANSIENT"
-    """ parameter is excluded from the history for the purposes of data provenance, but still included as a parameter when recording scripts."""
+    """ parameter is excluded from the history for the purposes of data provenance,
+      but still included as a parameter when recording scripts."""
     INVISIBLE = "INVISIBLE"
-    """ parameter is excluded from the history for the purposes of data provenance, and also excluded as a parameter when recording scripts. This option should only be used for parameters with no effect on the final output, such as a “verbose” flag."""
+    """ parameter is excluded from the history for the purposes of data provenance, 
+    and also excluded as a parameter when recording scripts. This option should only 
+    be used for parameters with no effect on the final output, such as a “verbose” 
+    flag."""
     MESSAGE = "MESSAGE"
-    """: parameter value is intended as a message only, not editable by the user nor included as an input or output parameter. The option required should be set to false."""
+    """: parameter value is intended as a message only, not editable by the user 
+    nor included as an input or output parameter. The option required should be
+      set to false."""
 
 
 class Parameter(BaseModel):
@@ -94,9 +103,19 @@ class Context(BaseModel):
 
 
 class Macro(BaseModel):
-    code: str
-    name: Optional[str]
-    description: Optional[str]
-    context: Context = Field(default_factory=Context)
-    inputs: List[Parameter] = Field(default_factory=list)
-    outputs: List[Parameter] = Field(default_factory=list)
+    code: str = Field(description="The code of the macro")
+    name: Optional[str] = Field(description="Doc string Name of the Macro")
+    description: Optional[str] = Field(
+        description="Doc string decsription of the Macro"
+    )
+    context: Context = Field(
+        default_factory=Context,
+        description="""Extracted Context of the Macro (e.g. if after running the active
+          image should be returned""",
+    )
+    inputs: List[Parameter] = Field(
+        default_factory=list, description="Inputso of this Macro"
+    )
+    outputs: List[Parameter] = Field(
+        default_factory=list, description="Outputs of this Macro"
+    )

@@ -10,20 +10,19 @@ packages = [{ include = "mikroj" }]
 python = "<3.12,>=3.8"
 pyimagej = "1.4.0"
 scyjava = "^1.6.0"
-arkitekt = { version = "0.5.0", extras = [
-    "cli",
+arkitekt = { version = "0.5.33", extras = [
     "reaktion",
-    "mikro",
-    "unlok",
-    "fluss",
     "rekuest",
+    "mikro"
 ] }
 qtpy = "^2.3.0"
 
 [tool.poetry.scripts]
-mikroj = "mikroj.run:main"
+mikroj = "mikroj.main:main"
 
-[tool.poetry.dev-dependencies]
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.0.288"
 tox = "^3.24.3"
 pyinstaller = "^5.5"
 pytest-cov = "^3.0.0"

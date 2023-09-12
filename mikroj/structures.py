@@ -2,14 +2,15 @@ import uuid
 import xarray as xr
 from rekuest.structures.registry import StructureRegistry
 from rekuest.collection.shelve import get_current_shelve
-from mikroj.macro_helper import ImageJMacroHelper
+from mikroj.bridge import ImageJBridge
 
 
 class ImageJPlus:
-    def __init__(self, value, name) -> None:
+    def __init__(self, value, name, bridge: ImageJBridge) -> None:
         self.value = value
         self.name = name
         self.id = str(uuid.uuid4())
+        self.bridge = bridge
 
     async def ashrink(self) -> "str":
         shelve = get_current_shelve()
@@ -18,15 +19,18 @@ class ImageJPlus:
     def get_image_id(self):
         return self.value.getID()
 
+    def get_as_label(self):
+        return self.value.getOverlay()
+
     def close(self):
         self.value.close()
 
-    def to_jarg(self, helper):
+    def to_jarg(self):
         return self.value
 
     @classmethod
-    def from_jreturn(cls, value, helper):
-        return cls(value, str(uuid.uuid4()))
+    def from_jreturn(cls, value, bridge: ImageJBridge):
+        return cls(value, str(uuid.uuid4()), bridge)
 
     @classmethod
     async def aexpand(cls, value: "str") -> None:
@@ -40,8 +44,8 @@ class ImageJPlus:
         x.close()
         return await shelve.adelete(id)
 
-    def to_xarray(self, helper: ImageJMacroHelper):
-        xarray: xr.DataArray = helper.py.from_java(self.value)
+    def to_xarray(self):
+        xarray: xr.DataArray = self.bridge.py.from_java(self.value)
         if "row" in xarray.dims:
             xarray = xarray.rename(row="x")
         if "pln" in xarray.dims:
@@ -55,18 +59,18 @@ class ImageJPlus:
 
         return xarray
 
-    def set_active(self, helper: ImageJMacroHelper):
-        helper.ui.show(self.name, self.value)
+    def set_active(self):
+        self.bridge.ui.show(self.name, self.value)
 
     @classmethod
     def from_xarray(
         cls,
         data,
         name: str,
-        helper: ImageJMacroHelper,
+        bridge: ImageJBridge,
     ):
-        image = helper.py.to_imageplus(helper.py.to_java(data))
-        return cls(image, name)
+        image = bridge.py.to_imageplus(bridge.py.to_java(data))
+        return cls(image, name, bridge)
 
 
 class ImageJStructureRegistry(StructureRegistry):

@@ -1,28 +1,14 @@
-from concurrent.futures import ThreadPoolExecutor
 import logging
-from rekuest.actors.functional import (
-    ThreadedFuncActor,
-)
+from typing import Any, Protocol, TypeVar, runtime_checkable
+
+
+from mikroj import constants, structures
+from mikroj.language.types import Macro
+from mikroj.bridge import ImageJBridge
+from rekuest.actors.functional import ThreadedFuncActor
 from rekuest.api.schema import (
-    ProvisionFragment,
-    ProvisionFragmentTemplate,
-    DefinitionFragment,
     DefinitionInput,
 )
-from mikro.api.schema import (
-    RepresentationFragment,
-    RepresentationVarietyInput,
-    from_xarray,
-    from_df,
-)
-from rekuest.definition.validate import auto_validate
-from mikroj.macro_helper import ImageJMacroHelper
-from mikroj.language.types import Macro
-from mikro.traits import Representation
-import xarray as xr
-from pydantic import Field
-from typing import Protocol, TypeVar, runtime_checkable, Any
-from mikroj import constants, structures
 
 T = TypeVar("T")
 
@@ -33,57 +19,58 @@ class TranspileAble(Protocol):
     def from_jreturn(cls: T, value, Any) -> T:
         ...
 
-    def to_jarg(self, helper: ImageJMacroHelper) -> Any:
+    def to_jarg(self, bridge: ImageJBridge) -> Any:
         ...
 
 
-def convert_inputs(kwargs, helper: ImageJMacroHelper, definition: DefinitionInput):
+def convert_inputs(kwargs, bridge: ImageJBridge, definition: DefinitionInput):
     transpile_inputs = {}
     for key, value in kwargs.items():
         if key == "active_in":
-            value.set_active(helper)
+            value.set_active()
             continue
 
         if isinstance(value, TranspileAble):
-            transpile_inputs[key] = value.to_jarg(helper)
+            transpile_inputs[key] = value.to_jarg()
         else:
-            transpile_inputs[key] = helper.py.to_java(value)
+            transpile_inputs[key] = bridge.py.to_java(value)
 
     return transpile_inputs
 
 
-def convert_outputs(
-    macro_output, helper: ImageJMacroHelper, definition: DefinitionInput
-):
+def convert_outputs(macro_output, bridge: ImageJBridge, definition: DefinitionInput):
     transpile_outputs = []
     for port in definition.returns:
         if port.key == "active_out":
             transpile_outputs.append(
-                structures.ImageJPlus(helper.py.active_imageplus())
+                structures.ImageJPlus(bridge.py.active_imageplus())
             )
             continue
         if port.identifier == constants.IMAGEJ_PLUS_IDENTIFIER:
             transpile_outputs.append(
                 structures.ImageJPlus.from_jreturn(
-                    macro_output.getOutput(port.key), helper
+                    macro_output.getOutput(port.key), bridge
                 )
             )
             continue
 
-        transpile_outputs.append(helper.py.to_python(macro_output.getOutput(port.key)))
+        transpile_outputs.append(bridge.py.to_python(macro_output.getOutput(port.key)))
 
     return transpile_outputs
 
 
 class FuncMacroActor(ThreadedFuncActor):
+    """Base class for actors that run ImageJ macros. They are threaded by default,
+      as the pyimagej interface is supposedly thread safe."""
+
     macro: Macro
-    helper: ImageJMacroHelper
+    bridge: ImageJBridge
 
     def assign(self, **kwargs):
         logging.info("Being assigned")
-        transpiled_args = convert_inputs(kwargs, self.helper, self.definition)
-        macro_output = self.helper.py.run_macro(self.macro.code, {**transpiled_args})
-        transpiled_returns = convert_outputs(macro_output, self.helper, self.definition)
+        transpiled_args = convert_inputs(kwargs, self.bridge, self.definition)
+        macro_output = self.bridge.run_macro(self.macro.code, {**transpiled_args})
+        transpiled_returns = convert_outputs(macro_output, self.bridge, self.definition)
 
         return tuple(transpiled_returns) if transpiled_returns else None
 
