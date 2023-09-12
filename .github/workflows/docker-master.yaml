@@ -24,6 +24,8 @@ jobs:
           poetry-version: ${{ matrix.poetry-version }}
       - name: Run Poetry Install
         run: poetry install
+      - name: Install pyqt5
+        run: pip install pyqt5
       - name: Run Tests
         run: poetry run pytest --cov --cov-report=xml  -k "not qt"
   linux_unit:
@@ -50,6 +52,8 @@ jobs:
           poetry-version: ${{ matrix.poetry-version }}
       - name: Run Poetry Install
         run: poetry install
+      - name: Install pyqt5
+        run: pip install pyqt5
       - name: Run Tests
         env:
           QT_DEBUG_PLUGINS: 1
@@ -79,6 +83,8 @@ jobs:
           poetry-version: ${{ matrix.poetry-version }}
       - name: Run Poetry Install
         run: poetry install
+      - name: Install pyqt5
+        run: pip install pyqt5
       - name: Run Tests
         env:
           QT_DEBUG_PLUGINS: 1

@@ -42,6 +42,8 @@ PyInstaller.__main__.run(
         "--noconfirm",
         "--hiddenimport=scyjava",
         "--copy-metadata=scyjava",
+        "--copy-metadata=imglyb",
+        "--hiddenimport=imglyb",
         "--hiddenimport=imagej",
         "--add-data=share;share",
         "--additional-hooks-dir=hooks",

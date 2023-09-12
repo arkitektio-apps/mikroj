@@ -10,10 +10,13 @@ packages = [{ include = "mikroj" }]
 python = "<3.12,>=3.8"
 pyimagej = "1.4.0"
 scyjava = "^1.6.0"
-arkitekt = { version = "0.5.33", extras = [
+arkitekt = { version = "0.5.34", extras = [
     "reaktion",
     "rekuest",
-    "mikro"
+    "mikro",
+    "mikro",
+    "fluss",
+    "unlok"
 ] }
 qtpy = "^2.3.0"
 
