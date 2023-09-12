@@ -23,7 +23,7 @@ print("Copying shares")
 
 JDK_LINK = "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.16.1%2B1/OpenJDK11U-jdk_x64_windows_hotspot_11.0.16.1_1.zip"
 MAVEN_LINK = (
-    "https://dlcdn.apache.org/maven/maven-3/3.9.4/binaries/apache-maven-3.9.4-bin.zip"
+    "https://dlcdn.apache.org/maven/maven-3/3.8.6/binaries/apache-maven-3.8.6-bin.zip"
 )
 
 download_and_unzip(MAVEN_LINK, "share", "mvn")
