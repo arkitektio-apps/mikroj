@@ -48,7 +48,7 @@ structure_registry.register_as_structure(
 class MikroJ(QtWidgets.QWidget):
     bridge: Optional[ImageJBridge] = None
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args, auto_init=None, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
         self.setWindowIcon(QtGui.QIcon(get_asset_file("logo.ico")))
@@ -56,7 +56,7 @@ class MikroJ(QtWidgets.QWidget):
 
         self.settings = QtCore.QSettings("MikroJ", "ss")
         self.image_j_path = self.settings.value("image_j_path", "")
-        self.auto_initialize = self.settings.value("auto_initialize", True)
+        self.auto_initialize = auto_init  if auto_init else self.settings.value("auto_initialize", True)
         self.plugins_dir = self.settings.value("plugins_dir", "")
 
         self.bridge = ImageJBridge()

@@ -1,5 +1,5 @@
 /*
- * Particle Analyzer 2
+ * Particle Analyzer
  * 
  * Analyzes all particles in an image
  * 
