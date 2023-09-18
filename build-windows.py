@@ -46,7 +46,7 @@ PyInstaller.__main__.run(
         "--copy-metadata=pyimagej",
         "--hiddenimport=imglyb",
         "--hiddenimport=imagej",
-        "--hiddeninmport=pyarrow.vendored.version",
+        "--hiddenimport=pyarrow.vendored.version",
         "--hiddenimport=pyimagej",
         "--add-data=share;share",
         "--additional-hooks-dir=hooks",
