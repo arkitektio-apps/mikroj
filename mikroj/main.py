@@ -29,7 +29,6 @@ from mikroj.language.transpile import TranspileRegistry
 from mikroj.extension import MacroExtension
 
 
-
 identifier = "github.io.jhnnsrs.mikroj"
 version = "v0.0.1"
 
@@ -51,7 +50,9 @@ class MikroJ(QtWidgets.QWidget):
 
         self.settings = QtCore.QSettings("MikroJ", "ss")
         self.image_j_path = self.settings.value("image_j_path", "")
-        self.auto_initialize = auto_init  if auto_init else self.settings.value("auto_initialize", True)
+        self.auto_initialize = (
+            auto_init if auto_init else self.settings.value("auto_initialize", True)
+        )
         self.plugins_dir = self.settings.value("plugins_dir", "")
 
         self.bridge = ImageJBridge()
@@ -62,6 +63,7 @@ class MikroJ(QtWidgets.QWidget):
             version=version,
             log_level="INFO",
             parent=self,
+            settings=self.settings,
         )
 
         self.app.rekuest.register_extension(
@@ -354,7 +356,7 @@ class MikroJ(QtWidgets.QWidget):
                 os.getcwd()
             )  # This is a hack until https://github.com/imagej/pyimagej/issues/150
             self._ij = imagej.init(self.image_j_path, mode="interactive")
-            os.chdir(path)  ## 
+            os.chdir(path)  ##
             self.imagej_button.setText("ImageJ Initialized")
             self.magic_bar.magicb.setDisabled(False)
 
@@ -394,14 +396,13 @@ class MikroJ(QtWidgets.QWidget):
 
 
 def main(run_packaged=False, **kwargs):
-
     if run_packaged:
         os.environ["JAVA_HOME"] = os.path.join(os.getcwd(), "share\\jdk")
         os.environ["PATH"] = (
-            os.path.join(os.getcwd(), "share\\mvn\\bin") + os.pathsep + os.environ["PATH"]
+            os.path.join(os.getcwd(), "share\\mvn\\bin")
+            + os.pathsep
+            + os.environ["PATH"]
         )
-
-
 
     qtapp = QtWidgets.QApplication(sys.argv)
 
