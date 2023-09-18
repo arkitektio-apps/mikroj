@@ -27,8 +27,10 @@ from mikroj.bridge import ImageJBridge
 import scyjava as sj
 from mikroj.language.transpile import TranspileRegistry
 from mikroj.extension import MacroExtension
+from imagej.doctor import checkup
+import logging
 
-
+logger = logging.getLogger(__name__)
 identifier = "github.io.jhnnsrs.mikroj"
 version = "v0.0.1"
 
@@ -78,6 +80,11 @@ class MikroJ(QtWidgets.QWidget):
         self.magic_bar = MagicBar(
             self.app, on_error=self.show_exception, dark_mode=False
         )
+
+        self.check_up_button = QtWidgets.QPushButton("Check Up")
+
+        self.magic_bar.profile.sidebar.addWidget(self.check_up_button)
+        self.check_up_button.clicked.connect(self.run_checkup)
 
         self.app.rekuest.register(
             self.ask_if_done,
@@ -148,6 +155,13 @@ class MikroJ(QtWidgets.QWidget):
     def open_settings(self):
         self.request_imagej_dir()
         pass
+
+    def run_checkup(self):
+        """Run Checkup
+
+        Runs the checkup
+        """
+        checkup(output=logger.info)
 
     def ask_if_done(self, qtfuture, message: str):
         """Ask if user is done"""
