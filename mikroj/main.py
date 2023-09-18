@@ -411,9 +411,9 @@ class MikroJ(QtWidgets.QWidget):
 
 def main(run_packaged=False, **kwargs):
     if run_packaged:
-        os.environ["JAVA_HOME"] = os.path.join(os.getcwd(), "share\\jdk")
+        os.environ["JAVA_HOME"] = os.path.join(os.getcwd(), "share", "jdk")
         os.environ["PATH"] = (
-            os.path.join(os.getcwd(), "share\\mvn\\bin")
+            os.path.join(os.getcwd(), "share", "mvn", "bin")
             + os.pathsep
             + os.environ["PATH"]
         )
