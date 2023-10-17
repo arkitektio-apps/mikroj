@@ -19,7 +19,7 @@ from mikro.api.schema import (
 import traceback
 from typing import Tuple
 from mikro.api.schema import from_xarray, TableFragment, from_df
-from rekuest.widgets import ParagraphWidget
+from rekuest.widgets import ParagraphWidget, SliderWidget
 from rekuest.structures.default import get_default_structure_registry
 from mikroj import constants, structures
 from typing import List, Optional
@@ -29,6 +29,7 @@ from mikroj.language.transpile import TranspileRegistry
 from mikroj.extension import MacroExtension
 from imagej.doctor import checkup
 import logging
+
 
 logger = logging.getLogger(__name__)
 identifier = "github.io.jhnnsrs.mikroj"
@@ -104,6 +105,10 @@ class MikroJ(QtWidgets.QWidget):
         )
         self.app.rekuest.register(
             self.analyze_particles,
+            widgets={
+                "min_circularity": SliderWidget(min=0, max=1, step=0.1),
+                "max_circularity": SliderWidget(min=0, max=1, step=0.1),
+            },
             structure_registry=structure_registry,
         )
         self.app.rekuest.register(
@@ -256,7 +261,12 @@ class MikroJ(QtWidgets.QWidget):
         return structures.ImageJPlus(imageplus, image.name, self.bridge)
 
     def analyze_particles(
-        self, image: RepresentationFragment
+        self,
+        image: RepresentationFragment,
+        min_size: Optional[int] = 0,
+        max_size: Optional[int] = None,
+        min_circularity: Optional[float] = 0.0,
+        max_circularity: Optional[float] = 1.0,
     ) -> Tuple[TableFragment, RepresentationFragment]:
         """Analyze Particles
 
@@ -266,15 +276,30 @@ class MikroJ(QtWidgets.QWidget):
         ----------
         image : RepresentationFragment
             The image
+        min_size : Optional[int], optional
+            The minimum size of the particles (default: 0)
+        max_size : Optional[int], optional
+            The maximum size of the particles (default: None)
+        min_circularity : Optional[float], optional
+            The minimum circularity of the particles (default: 0.0)
+        max_circularity : Optional[float], optional
+            The maximum circularity of the particles (default: 1.0)
+
+        Returns
+        -------
+        table: TableFragment
+            The analyzed particle table
+        image: RepresentationFragment
+            The instance segmentation mask
         """
         image_plus, name = self.load_into_imagej(image)
-        macro = """
+        macro = f"""
         run("8-bit");
         setAutoThreshold("Default dark");
-        run("Analyze Particles...", "size=0-Infinity circularity=0.00-1.00 show=[Count Masks]  display exclude clear add");
+        run("Analyze Particles...", "size={min_size}-{max_size if max_size is not None else "Infinity"} circularity={min_circularity}-{max_circularity} show=[Count Masks]  display exclude clear add");
         """
         after_image = self.run_image_to_image_macro(image_plus, macro)
-        results = self.get_results_as_table(f"Analyzd Particles of {name}", [image])
+        results = self.get_results_as_table(f"Analyzed Particles of {name}", [image])
         uploaded = from_xarray(
             after_image.to_xarray(),
             name="Particles of " + name,

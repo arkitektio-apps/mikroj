@@ -3,6 +3,7 @@ import xarray as xr
 from rekuest.structures.registry import StructureRegistry
 from rekuest.collection.shelve import get_current_shelve
 from mikroj.bridge import ImageJBridge
+from imagej._java import JObjectArray, jc
 
 
 class ImageJPlus:
@@ -23,6 +24,8 @@ class ImageJPlus:
         return self.value.getOverlay()
 
     def close(self):
+        self.value = self.bridge.ij.convert().convert(self.value, jc.ImagePlus)
+        self.value.changes = False  # YEEEEESSSSSS FINALLY I CAN CLOSE IMAGES
         self.value.close()
 
     def to_jarg(self):
@@ -69,7 +72,8 @@ class ImageJPlus:
         name: str,
         bridge: ImageJBridge,
     ):
-        image = bridge.py.to_imageplus(bridge.py.to_java(data))
+        image = bridge.py.to_dataset(data)
+
         return cls(image, name, bridge)
 
 
