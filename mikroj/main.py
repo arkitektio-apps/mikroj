@@ -57,7 +57,7 @@ class MikroJ(QtWidgets.QWidget):
             auto_init if auto_init else self.settings.value("auto_initialize", True)
         )
         self.plugins_dir = self.settings.value("plugins_dir", "")
-
+        self._ij = None
         self.bridge = ImageJBridge()
         self.transpile_registry = TranspileRegistry()
 
@@ -147,6 +147,11 @@ class MikroJ(QtWidgets.QWidget):
             self.initialize()
 
     def request_imagej_dir(self):
+        if self._ij:
+            self.magic_bar.magicb.setDisabled(True)
+            self._ij.ui().dispose()
+            del self._ij
+            self._ij = None
         dir = QtWidgets.QFileDialog.getExistingDirectory(
             parent=self, caption="Select ImageJ directory"
         )
@@ -156,6 +161,9 @@ class MikroJ(QtWidgets.QWidget):
         else:
             self.image_j_path = ""
             self.settings.setValue("image_j_path", "")
+
+        if self.image_j_path != "":
+            self.initialize()
 
     def open_settings(self):
         self.request_imagej_dir()
@@ -396,7 +404,6 @@ class MikroJ(QtWidgets.QWidget):
             )  # This is a hack until https://github.com/imagej/pyimagej/issues/150
             self._ij = imagej.init(self.image_j_path, mode="interactive")
             os.chdir(path)  ##
-            self.imagej_button.setText("ImageJ Initialized")
             self.magic_bar.magicb.setDisabled(False)
 
             self.vlayout.update()
@@ -404,6 +411,7 @@ class MikroJ(QtWidgets.QWidget):
             self.bridge.set_ij_instance(self._ij)
             self._ij.ui().showUI()
             self.magic_bar.magicb.setDisabled(False)
+            self.imagej_button.setText("ImageJ Initialized")
 
         except Exception as e:
             self.image_j_path = None
