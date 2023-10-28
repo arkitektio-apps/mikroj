@@ -50,13 +50,13 @@ class ImageJPlus:
     def to_xarray(self):
         xarray: xr.DataArray = self.bridge.py.from_java(self.value)
         if "row" in xarray.dims:
-            xarray = xarray.rename(row="x")
+            xarray = xarray.rename(row="y")
         if "pln" in xarray.dims:
             xarray = xarray.rename(pln="z")
         if "ch" in xarray.dims:
             xarray = xarray.rename(ch="c")
         if "col" in xarray.dims:
-            xarray = xarray.rename(col="y")
+            xarray = xarray.rename(col="x")
         if "Channel" in xarray.dims:
             xarray = xarray.rename(Channel="c")
 

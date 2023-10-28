@@ -100,7 +100,15 @@ class MikroJ(QtWidgets.QWidget):
             structure_registry=structure_registry,
         )
         self.app.rekuest.register(
+            self.show_on_imagej,
+            structure_registry=structure_registry,
+        )
+        self.app.rekuest.register(
             self.get_results_as_table,
+            structure_registry=structure_registry,
+        )
+        self.app.rekuest.register(
+            self.upload_active_image,
             structure_registry=structure_registry,
         )
         self.app.rekuest.register(
@@ -181,6 +189,25 @@ class MikroJ(QtWidgets.QWidget):
         self.done_yet_widget = DoneYetWidget(qtfuture, message)
         self.done_yet_widget.show()
 
+    def show_on_imagej(
+        self,
+        image: RepresentationFragment,
+    ) -> None:
+        """Show on Imagej
+
+        Shows the image on imagej
+
+        Parameters
+        ----------
+        a : RepresentationFragment
+            The image
+
+        """
+        image_plus = structures.ImageJPlus.from_xarray(
+            image.data.compute(), image.name, self.bridge
+        )
+        image_plus.set_active()
+
     def load_into_imagej(
         self,
         image: RepresentationFragment,
@@ -210,6 +237,35 @@ class MikroJ(QtWidgets.QWidget):
             image_plus,
             image.name,
         )
+
+    def upload_active_image(
+        self,
+        name: Optional[str] = "Active Image",
+        origin: Optional[RepresentationFragment] = None,
+    ) -> RepresentationFragment:
+        """Upload Active Image
+
+        Uploads the active image to the server
+
+        Parameters
+        ----------
+        name: Optional[str], optional
+            The name of the image (default: "Active Image")
+        origin: Optional[RepresentationFragment], optional
+            The original image that this immage was created from
+
+        Returns
+
+        a : RepresentationFragment
+            The image
+
+        -------
+
+        """
+        imageplus = self.bridge.active_imageplus()
+        imageplus_structure = structures.ImageJPlus(imageplus, name, self.bridge)
+        array = imageplus_structure.to_xarray()
+        return from_xarray(array, name=name, origins=[origin] if origin else None)
 
     def retrieve_from_image(
         self,
