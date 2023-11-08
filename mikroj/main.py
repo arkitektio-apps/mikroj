@@ -42,6 +42,39 @@ structure_registry.register_as_structure(
 )
 
 
+class InitWorker(QtCore.QObject):
+    finished = QtCore.Signal()
+    initialized = QtCore.Signal(object)
+    progress = QtCore.Signal(str)
+    errored = QtCore.Signal(Exception)
+
+    def __init__(self, image_j_path):
+        super().__init__()
+        self.image_j_path = image_j_path
+
+    def run(self):
+        """Long-running task."""
+        self.progress.emit("Initializing...")
+
+        try:
+            path = (
+                os.getcwd()
+            )  # This is a hack until https://github.com/imagej/pyimagej/issues/150
+            self._ij = imagej.init(self.image_j_path, mode="interactive")
+            self.progress.emit("Initialized")
+            os.chdir(path)  ##
+            self._ij.ui().showUI()
+
+            self.progress.emit("ImageJ Initialized")
+            self.initialized.emit(self._ij)
+            self.finished.emit()
+
+        except Exception as e:
+            self.image_j_path = None
+            self.progress.emit("ImageJ Failed to Initialize")
+            self.errored.emit(e)
+
+
 class MikroJ(QtWidgets.QWidget):
     bridge: Optional[ImageJBridge] = None
 
@@ -151,15 +184,12 @@ class MikroJ(QtWidgets.QWidget):
 
         self.setLayout(self.vlayout)
         self.magic_bar.magicb.setDisabled(True)
+
         if self.image_j_path and self.auto_initialize:
             self.initialize()
 
     def request_imagej_dir(self):
-        if self._ij:
-            self.magic_bar.magicb.setDisabled(True)
-            self._ij.ui().dispose()
-            del self._ij
-            self._ij = None
+        self.bridge.stop_ij_instance()
         dir = QtWidgets.QFileDialog.getExistingDirectory(
             parent=self, caption="Select ImageJ directory"
         )
@@ -443,7 +473,23 @@ class MikroJ(QtWidgets.QWidget):
 
         return arguments
 
+    def on_progress(self, progress: str):
+        self.imagej_button.setText(progress)
+
+    def on_finished(self, ij):
+        self.bridge.set_ij_instance(ij)
+
+        self.magic_bar.magicb.setDisabled(False)
+        self.imagej_button.setText("ImageJ Initialized")
+
+    def on_error(self, e):
+        self.show_exception(e)
+
     def initialize(self):
+        print("Initializing...")
+        self.imagej_button.setDisabled(True)
+        self.imagej_button.setText("Initializing...")
+
         if not self.image_j_path:
             self.magic_bar.magicb.setDisabled(True)
             self.request_imagej_dir()
@@ -452,29 +498,20 @@ class MikroJ(QtWidgets.QWidget):
             # scyjava.config.add_option(f"-Dplugins.dir={self.plugins_dir}")
             pass
 
-        try:
-            self.imagej_button.setDisabled(True)
-            self.imagej_button.setText("Initializing...")
-            path = (
-                os.getcwd()
-            )  # This is a hack until https://github.com/imagej/pyimagej/issues/150
-            self._ij = imagej.init(self.image_j_path, mode="interactive")
-            os.chdir(path)  ##
-            self.magic_bar.magicb.setDisabled(False)
-
-            self.vlayout.update()
-
-            self.bridge.set_ij_instance(self._ij)
-            self._ij.ui().showUI()
-            self.magic_bar.magicb.setDisabled(False)
-            self.imagej_button.setText("ImageJ Initialized")
-
-        except Exception as e:
-            self.image_j_path = None
-            self.imagej_button.setText("ImageJ Failed to Initialize")
-            self.magic_bar.magicb.setDisabled(True)
-            self.imagej_button.setDisabled(False)
-            self.show_exception(e)
+        self.thread = QtCore.QThread()
+        self.worker = InitWorker(self.image_j_path)
+        self.worker.moveToThread(self.thread)
+        self.thread.started.connect(self.worker.run)
+        self.worker.initialized.connect(self.on_finished)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.errored.connect(self.thread.quit)
+        self.worker.errored.connect(self.on_error)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.worker.errored.connect(self.worker.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+        self.worker.progress.connect(self.on_progress)
+        self.thread.start()
 
     def show_exception(self, exception: Exception):
         msg = QMessageBox()
@@ -496,6 +533,7 @@ class MikroJ(QtWidgets.QWidget):
             raise exception
         except Exception:
             traceback.print_exc()
+            pass
 
 
 def main(run_packaged=False, **kwargs):

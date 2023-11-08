@@ -47,6 +47,12 @@ class ImageJBridge(BaseModel):
     def set_ij_instance(self, ij: ImageJ):
         self._ij = ij
 
+    def stop_ij_instance(self):
+        if self._ij:
+            self._ij.ui().dispose()
+            del self._ij
+            self._ij = None
+
     def get_imageplus_roi_id(self, id):
         imp = self.ij.WindowManager.getImage(id)
         return imp
