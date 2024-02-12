@@ -100,6 +100,7 @@ class MikroJ(QtWidgets.QWidget):
             log_level="INFO",
             parent=self,
             settings=self.settings,
+            scopes=["read", "write", "openid"],
         )
 
         self.app.rekuest.register_extension(
@@ -193,6 +194,13 @@ class MikroJ(QtWidgets.QWidget):
         dir = QtWidgets.QFileDialog.getExistingDirectory(
             parent=self, caption="Select ImageJ directory"
         )
+
+        try:
+            dir = self.validate_path(dir)
+        except ValueError as e:
+            self.show_exception(e)
+            return
+
         if dir:
             self.image_j_path = dir
             self.settings.setValue("image_j_path", dir)
@@ -200,8 +208,7 @@ class MikroJ(QtWidgets.QWidget):
             self.image_j_path = ""
             self.settings.setValue("image_j_path", "")
 
-        if self.image_j_path != "":
-            self.initialize()
+        self.initialize()
 
     def open_settings(self):
         self.request_imagej_dir()
@@ -485,6 +492,19 @@ class MikroJ(QtWidgets.QWidget):
     def on_error(self, e):
         self.show_exception(e)
 
+    def validate_path(self, path):
+        path_exists = os.path.exists(path)
+        if not path_exists:
+            raise ValueError(f"Path {path} does not exist")
+
+        jars_dir = os.path.join(path, "jars")
+        if not os.path.exists(jars_dir):
+            raise ValueError(
+                f"Jars {jars_dir} do not exist. This is not an ImageJ installation"
+            )
+
+        return path
+
     def initialize(self):
         print("Initializing...")
         self.imagej_button.setDisabled(True)
@@ -493,10 +513,6 @@ class MikroJ(QtWidgets.QWidget):
         if not self.image_j_path:
             self.magic_bar.magicb.setDisabled(True)
             self.request_imagej_dir()
-
-        if self.plugins_dir:
-            # scyjava.config.add_option(f"-Dplugins.dir={self.plugins_dir}")
-            pass
 
         self.thread = QtCore.QThread()
         self.worker = InitWorker(self.image_j_path)

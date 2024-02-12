@@ -159,14 +159,17 @@ class ImageJBridge(BaseModel):
 
     @property
     def py(self) -> imagej.ImageJPython:
+        assert self._ij is not None, "No ImageJ instance found"
         return self._ij.py
 
     @property
     def ij(self) -> IJProtocol:
+        assert self._ij is not None, "No ImageJ instance found"
         return self._ij
 
     @property
     def ui(self):
+        assert self._ij is not None, "No ImageJ instance found"
         return self._ij.ui()
 
     class Config:
