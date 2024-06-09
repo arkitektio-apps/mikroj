@@ -121,6 +121,11 @@ class MikroJ(QtWidgets.QWidget):
         self.magic_bar.profile.sidebar.addWidget(self.check_up_button)
         self.check_up_button.clicked.connect(self.run_checkup)
 
+        self.reset_button = QtWidgets.QPushButton("Reset ImageJ")
+
+        self.magic_bar.profile.sidebar.addWidget(self.reset_button)
+        self.reset_button.clicked.connect(self.reset_imagej)
+
         self.app.rekuest.register(
             self.ask_if_done,
             actifier=qtwithfutureactifier,
@@ -133,6 +138,12 @@ class MikroJ(QtWidgets.QWidget):
             self.load_into_imagej,
             structure_registry=structure_registry,
         )
+        self.app.rekuest.register(
+            self.show_image,
+            structure_registry=structure_registry,
+            collections=["display"],
+        )
+
         self.app.rekuest.register(
             self.show_on_imagej,
             structure_registry=structure_registry,
@@ -221,10 +232,38 @@ class MikroJ(QtWidgets.QWidget):
         """
         checkup(output=logger.info)
 
+    def reset_imagej(self):
+        """Run Checkup
+
+        Runs the checkup
+        """
+        self.bridge.stop_ij_instance()
+        self.settings.setValue("image_j_path", "")
+        self.image_j_path = ""
+
     def ask_if_done(self, qtfuture, message: str):
         """Ask if user is done"""
         self.done_yet_widget = DoneYetWidget(qtfuture, message)
         self.done_yet_widget.show()
+
+    def show_image(
+        self,
+        image: RepresentationFragment,
+    ) -> None:
+        """Show Image
+
+        Show an image on a bioimage app
+
+        Parameters
+        ----------
+        a : RepresentationFragment
+            The image
+
+        """
+        image_plus = structures.ImageJPlus.from_xarray(
+            image.data.compute(), image.name, self.bridge
+        )
+        image_plus.set_active()
 
     def show_on_imagej(
         self,
@@ -513,6 +552,7 @@ class MikroJ(QtWidgets.QWidget):
         if not self.image_j_path:
             self.magic_bar.magicb.setDisabled(True)
             self.request_imagej_dir()
+            return
 
         self.thread = QtCore.QThread()
         self.worker = InitWorker(self.image_j_path)
