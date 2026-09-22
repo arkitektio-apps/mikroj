@@ -20,7 +20,7 @@ import traceback
 from typing import Tuple
 from mikro.api.schema import from_xarray, TableFragment, from_df
 from rekuest.widgets import ParagraphWidget, SliderWidget
-from rekuest.structures.default import get_default_structure_registry
+from rekuest.structures.registry import StructureRegistry
 from mikroj import constants, structures
 from typing import List, Optional
 from mikroj.bridge import ImageJBridge
@@ -36,7 +36,7 @@ identifier = "github.io.jhnnsrs.mikroj"
 version = "v0.0.1"
 
 
-structure_registry = get_default_structure_registry()
+structure_registry = StructureRegistry()
 structure_registry.register_as_structure(
     structures.ImageJPlus, constants.IMAGEJ_PLUS_IDENTIFIER
 )

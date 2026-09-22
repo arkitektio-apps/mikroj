@@ -13,7 +13,6 @@ from rekuest.api.schema import (
     acreate_template,
 )
 from rekuest.definition.registry import DefinitionRegistry
-from rekuest.structures.default import get_default_structure_registry
 from rekuest.structures.registry import StructureRegistry
 from rekuest.widgets import StringWidget
 
@@ -36,7 +35,7 @@ class MacroExtension(BaseModel):
     transpile_registry: TranspileRegistry = Field(default_factory=TranspileRegistry)
     bridge: ImageJBridge
     structure_registry: StructureRegistry = Field(
-        default_factory=get_default_structure_registry
+        default_factory=StructureRegistry
     )
 
     async def aspawn_actor_from_template(
