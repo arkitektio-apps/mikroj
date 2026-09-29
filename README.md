@@ -1,8 +1,11 @@
 # mikroj
 
+> [!WARNING]
+> **This repository is deprecated and no longer maintained.** It has been archived and is kept read-only for reference.
+
 [![codecov](https://codecov.io/gh/jhnnsrs/mikroj/branch/master/graph/badge.svg?token=UGXEA2THBV)](https://codecov.io/gh/jhnnsrs/mikroj)
 [![PyPI version](https://badge.fury.io/py/mikroj.svg)](https://pypi.org/project/mikroj/)
-[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://pypi.org/project/mikroj/)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-no-red.svg)](https://pypi.org/project/mikroj/)
 ![Maintainer](https://img.shields.io/badge/maintainer-jhnnsrs-blue)
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/mikroj.svg)](https://pypi.python.org/pypi/mikroj/)
 [![PyPI status](https://img.shields.io/pypi/status/mikroj.svg)](https://pypi.python.org/pypi/mikroj/)
